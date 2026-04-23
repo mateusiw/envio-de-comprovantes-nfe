@@ -1,0 +1,928 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Envio de Comprovantes SPG</title>
+    
+    <!-- Ícones Modernos -->
+    <link rel="icon" type="image/png" href="https://img.icons8.com/fluency/512/receipt.png">
+    <link rel="apple-touch-icon" href="https://img.icons8.com/fluency/512/receipt.png">
+    <link rel="manifest" href='data:application/manifest+json,{"name":"Comprovantes SPG","short_name":"Recibos","start_url":".","display":"standalone","background_color":"#ffffff","theme_color":"#759587"}'>
+    
+    <meta name="theme-color" content="#759587">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Comprovantes SPG">
+    
+    <!-- Bibliotecas Externas -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            50: '#f2f6f4',
+                            100: '#dfe8e4',
+                            200: '#bfd1c9',
+                            300: '#9db8ad',
+                            400: '#82a294',
+                            500: '#759587',
+                            600: '#5e7b6d',
+                            700: '#4b6357',
+                            800: '#3d4f46',
+                            900: '#33413b',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; -webkit-tap-highlight-color: transparent; }
+        .hide-scrollbar::-webkit-scrollbar { display: none; }
+        .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+        input, select, textarea { line-height: 1.5; }
+        .animate-fade-in-down { animation: fadeInDown 0.3s ease-out forwards; }
+        @keyframes fadeInDown { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
+    </style>
+</head>
+<body class="bg-slate-100 text-slate-800 min-h-screen pb-20 select-none">
+
+    <!-- Navbar -->
+    <div class="bg-white border-b border-slate-200 px-4 py-3 flex justify-between items-center shadow-sm sticky top-0 z-40">
+        <div class="flex items-center gap-3">
+            <div class="w-8 h-8 rounded-lg shadow-sm border border-slate-100 bg-brand-50 flex items-center justify-center">
+                <i data-lucide="receipt" class="w-5 h-5 text-brand-600"></i>
+            </div>
+            <div>
+                <h1 class="text-sm font-bold text-slate-800 leading-tight">SPG FINANCEIRO</h1>
+                <p class="text-[10px] text-brand-600 font-bold uppercase tracking-wide">Controle e Envios</p>
+            </div>
+        </div>
+        <div class="flex gap-2">
+            <button type="button" onclick="confirmBeforeSend()" class="flex items-center gap-2 px-4 py-2 bg-brand-500 hover:bg-brand-600 text-white rounded-lg text-xs font-bold shadow-lg shadow-brand-500/20 transition-all active:scale-95 active:bg-brand-700">
+                <i data-lucide="share-2" class="w-4 h-4"></i>
+                <span class="hidden sm:inline">Enviar Registro</span>
+                <span class="sm:hidden">Enviar</span>
+            </button>
+        </div>
+    </div>
+
+    <div class="container mx-auto p-4 flex flex-col lg:flex-row gap-8 mt-4">
+        
+        <!-- COLUNA DA ESQUERDA: FORMULÁRIO -->
+        <div class="w-full lg:w-1/2 space-y-4">
+
+            <!-- SELETOR DE MODO -->
+            <div class="bg-slate-200/70 p-1.5 rounded-xl flex gap-1 shadow-inner">
+                <button type="button" id="btnModeCompra" onclick="setMode('compra')" class="flex-1 py-2.5 px-4 text-sm font-black rounded-lg bg-white shadow-sm text-brand-600 transition-all border border-slate-200/50">
+                    💳 Compras
+                </button>
+                <button type="button" id="btnModeNF" onclick="setMode('nf')" class="flex-1 py-2.5 px-4 text-sm font-bold rounded-lg text-slate-500 hover:text-slate-700 hover:bg-slate-300/50 transition-all">
+                    📄 Notas Fiscais
+                </button>
+            </div>
+
+            <!-- DADOS DO REGISTRO -->
+            <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
+                <h2 class="text-lg font-bold text-slate-800 flex items-center gap-2 mb-4 border-b border-slate-100 pb-3">
+                    <i data-lucide="shopping-cart" id="formIcon" class="text-brand-500"></i> <span id="formTitleText">Dados da Compra</span>
+                </h2>
+                
+                <form id="receiptForm" class="space-y-4">
+                    
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div>
+                            <label id="lblDate" class="text-xs font-bold text-slate-500 uppercase mb-1 block">Data da Compra</label>
+                            <input type="date" id="purchaseDate" required onchange="updatePreview()" class="w-full p-2 border border-slate-300 rounded-lg text-sm bg-white focus:ring-2 focus:ring-brand-500 outline-none font-bold">
+                        </div>
+                        <div id="amountContainer">
+                            <label class="text-xs font-bold text-slate-500 uppercase mb-1 block">Valor da Compra (R$)</label>
+                            <input type="text" inputmode="numeric" id="purchaseAmount" placeholder="0,00" required oninput="formatCurrency(this); updatePreview()" class="w-full p-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand-500 outline-none text-sm bg-white font-bold">
+                        </div>
+                        <div id="nfContainer" class="hidden">
+                            <label class="text-xs font-bold text-slate-500 uppercase mb-1 block">Número da NF (Opcional)</label>
+                            <input type="text" id="nfNumber" placeholder="Ex: 001234" oninput="updatePreview()" class="w-full p-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand-500 outline-none text-sm bg-white font-bold">
+                        </div>
+                    </div>
+
+                    <div>
+                        <label id="lblEstablishment" class="text-xs font-bold text-slate-500 uppercase mb-1 block">Estabelecimento (Loja/Fornecedor)</label>
+                        <select id="establishmentSelect" required onchange="handleEstablishmentChange()" class="w-full p-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand-500 outline-none text-sm bg-white font-bold">
+                            <option value="">Selecione...</option>
+                            <option value="Mercantil">Mercantil</option>
+                            <option value="Americanas">Americanas</option>
+                            <option value="Late & Mia - Clínica Veterinária">Late & Mia - Clínica Veterinária</option>
+                            <option value="Casa do Trator">Casa do Trator</option>
+                            <option value="Cequip">Cequip</option>
+                            <option value="Casa de Variedades">Casa de Variedades</option>
+                            <option value="Adrovando">Adrovando</option>
+                            <option value="Posto de Combustível">Posto de Combustível</option>
+                            <option value="Restaurante">Restaurante</option>
+                            <option value="Pousada">Pousada</option>
+                            <option value="Pedágio">Pedágio</option>
+                            <option value="Uber">Uber</option>
+                            <option value="Passagem de Ônibus">Passagem de Ônibus</option>
+                            <option value="Serviços de Internet">Serviços de Internet</option>
+                            <option value="Mercado Livre">Mercado Livre</option>
+                            <option value="Outro">Outro (Digitar manualmente)</option>
+                        </select>
+                        
+                        <div id="customEstablishmentContainer" class="hidden mt-2 animate-fade-in-down">
+                            <input type="text" id="customEstablishmentName" placeholder="Digite o nome..." oninput="updatePreview()" class="w-full p-2 border border-brand-300 bg-brand-50 rounded-lg text-sm focus:ring-2 focus:ring-brand-500 outline-none text-slate-700">
+                        </div>
+                    </div>
+
+                    <div>
+                        <label id="lblPurpose" class="text-xs font-bold text-slate-500 uppercase mb-1 block">Destino / Motivo da Compra</label>
+                        <input type="text" id="purchasePurpose" placeholder="Ex: Abastecimento do caminhão, Material para escritório..." required oninput="updatePreview()" class="w-full p-2 border border-slate-300 rounded-lg text-sm bg-white focus:ring-2 focus:ring-brand-500 outline-none">
+                    </div>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
+                        <div id="userContainer" class="sm:col-span-1 transition-all">
+                            <label id="lblUser" class="text-xs font-bold text-slate-500 uppercase mb-1 block">Quem usou o cartão?</label>
+                            <select id="userSelect" required onchange="handleUserChange()" class="w-full p-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand-500 outline-none text-sm bg-white font-bold">
+                                <option value="">Selecione...</option>
+                                <option value="Mateus Paulo">Mateus Paulo</option>
+                                <option value="Assis Paulo">Assis Paulo</option>
+                                <option value="Tatiany Rocha">Tatiany Rocha</option>
+                                <option value="Outro">Outro (Digitar manualmente)</option>
+                            </select>
+                            
+                            <div id="customUserContainer" class="hidden mt-2 animate-fade-in-down">
+                                <input type="text" id="customUserName" placeholder="Digite o nome..." oninput="updatePreview()" class="w-full p-2 border border-brand-300 bg-brand-50 rounded-lg text-sm focus:ring-2 focus:ring-brand-500 outline-none text-slate-700">
+                            </div>
+                        </div>
+                        <div id="cardDigitsContainer">
+                            <label class="text-xs font-bold text-slate-500 uppercase mb-1 block">Cartão Utilizado</label>
+                            <select id="cardLastDigits" required onchange="handleCardChange()" class="w-full p-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand-500 outline-none text-sm bg-white font-bold">
+                                <option value="">Selecione...</option>
+                                <option value="Visa 9140">Visa 9140</option>
+                                <option value="Mastercard 5294">Mastercard 5294</option>
+                                <option value="Outro">Outro (Digitar manualmente)</option>
+                            </select>
+                            
+                            <div id="customCardContainer" class="hidden mt-2 animate-fade-in-down">
+                                <input type="text" id="customCardName" placeholder="Ex: Elo 1234..." oninput="updatePreview()" class="w-full p-2 border border-brand-300 bg-brand-50 rounded-lg text-sm focus:ring-2 focus:ring-brand-500 outline-none text-slate-700">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="paymentRow" class="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2 animate-fade-in-down">
+                        <div>
+                            <label class="text-xs font-bold text-slate-500 uppercase mb-1 block">Forma de Pagamento</label>
+                            <select id="paymentType" required onchange="handlePaymentChange()" class="w-full p-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand-500 outline-none text-sm bg-white font-bold">
+                                <option value="">Selecione...</option>
+                                <option value="Crédito">Crédito</option>
+                                <option value="Débito">Débito</option>
+                            </select>
+                        </div>
+                        <div id="installmentsContainer" class="opacity-50 pointer-events-none transition-opacity">
+                            <label class="text-xs font-bold text-slate-500 uppercase mb-1 block">Parcelas</label>
+                            <select id="installments" required onchange="updatePreview()" class="w-full p-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand-500 outline-none text-sm bg-white font-bold">
+                                <option value="À vista">À vista (1x)</option>
+                                <option value="2x">2x</option>
+                                <option value="3x">3x</option>
+                                <option value="4x">4x</option>
+                                <option value="5x">5x</option>
+                                <option value="6x">6x</option>
+                                <option value="7x">7x</option>
+                                <option value="8x">8x</option>
+                                <option value="9x">9x</option>
+                                <option value="10x">10x</option>
+                                <option value="11x">11x</option>
+                                <option value="12x">12x</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="pt-4 border-t border-slate-100">
+                        <label class="text-xs font-bold text-slate-500 uppercase mb-1 flex items-center gap-1 justify-between">
+                            <span class="flex items-center gap-1"><i data-lucide="camera" class="w-3 h-3"></i> Foto do Comprovante/NF (Máx. 2)</span>
+                            <span id="photoCounter" class="text-[10px] text-brand-600 font-bold bg-brand-50 px-2 py-0.5 rounded-full">0/2</span>
+                        </label>
+                        <input type="file" id="photoUpload" accept="image/*" multiple required onchange="handleImageUpload(event)" class="w-full p-2 border border-slate-300 rounded-lg text-sm bg-slate-50 file:mr-4 file:py-1 file:px-3 file:rounded-md file:border-0 file:text-xs file:font-semibold file:bg-brand-50 file:text-brand-700 hover:file:bg-brand-100 transition-colors">
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- COLUNA DA DIREITA: PREVIEW DO RELATÓRIO -->
+        <div class="w-full lg:w-1/2 flex flex-col bg-slate-200/50 p-4 rounded-3xl border border-slate-300/50 h-max">
+            <div id="report-card" class="w-full h-auto flex flex-col bg-white rounded-none shadow-2xl overflow-hidden border border-slate-100 relative">
+                
+                <!-- HEADER DO PREVIEW -->
+                <div class="bg-gradient-to-br from-brand-700 via-brand-600 to-brand-800 p-8 text-white relative overflow-hidden flex flex-col justify-start shrink-0 border-b border-brand-900">
+                    <div class="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full blur-3xl -mr-20 -mt-20 pointer-events-none"></div>
+                    <i data-lucide="receipt" class="absolute -right-4 top-1/2 -translate-y-1/2 w-32 h-32 z-0 opacity-10 text-white transform -rotate-12"></i>
+                    
+                    <div class="relative z-10 w-full flex justify-between items-start"> 
+                        <div>
+                            <h2 id="previewMainTitle" class="text-2xl font-black leading-tight tracking-tight text-white uppercase">Comprovante</h2>
+                            <p id="previewSubTitle" class="text-brand-200 text-sm font-medium">Registro de Despesa</p>
+                        </div>
+                        
+                        <div class="text-right">
+                            <p id="previewTopLabel" class="text-xs text-brand-200 uppercase font-bold tracking-wider mb-1">Valor</p>
+                            <h3 class="text-2xl sm:text-3xl font-black text-white" id="previewAmount">R$ 0,00</h3>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- CORPO DO COMPROVANTE NO PREVIEW -->
+                <div id="previewContent" class="px-6 py-6 flex flex-col h-auto min-h-[300px] justify-start gap-4">
+                    
+                    <!-- Grid de Informações -->
+                    <div class="grid grid-cols-2 gap-y-4 gap-x-6">
+                        <div>
+                            <p id="previewEstabLabel" class="text-[10px] text-slate-400 font-bold uppercase tracking-wider mb-0.5">Estabelecimento</p>
+                            <p class="text-sm font-black text-slate-800" id="previewEstablishment">---</p>
+                        </div>
+                        
+                        <div>
+                            <p class="text-[10px] text-slate-400 font-bold uppercase tracking-wider mb-0.5">Data</p>
+                            <p class="text-sm font-bold text-slate-700 flex items-center gap-1">
+                                <i data-lucide="calendar" class="w-3.5 h-3.5 text-brand-500"></i>
+                                <span id="previewDate">--/--/----</span>
+                            </p>
+                        </div>
+
+                        <div>
+                            <p id="previewUserLabel" class="text-[10px] text-slate-400 font-bold uppercase tracking-wider mb-0.5">Quem Usou</p>
+                            <p class="text-sm font-bold text-slate-700 flex items-center gap-1">
+                                <i data-lucide="user" class="w-3.5 h-3.5 text-brand-500"></i>
+                                <span id="previewUser">---</span>
+                            </p>
+                        </div>
+
+                        <div id="previewCardWrapper">
+                            <p class="text-[10px] text-slate-400 font-bold uppercase tracking-wider mb-0.5">Cartão</p>
+                            <p class="text-sm font-bold text-slate-700 flex items-center gap-1">
+                                <i data-lucide="credit-card" class="w-3.5 h-3.5 text-brand-500"></i>
+                                <span id="previewCardDigits">----</span>
+                            </p>
+                        </div>
+
+                        <div id="previewPaymentWrapper">
+                            <p class="text-[10px] text-slate-400 font-bold uppercase tracking-wider mb-0.5">Pagamento</p>
+                            <p class="text-sm font-bold text-slate-700">
+                                <span id="previewPaymentType" class="bg-slate-100 px-2 py-0.5 rounded border border-slate-200">---</span>
+                            </p>
+                        </div>
+
+                        <div id="previewInstallmentsWrapper">
+                            <p class="text-[10px] text-slate-400 font-bold uppercase tracking-wider mb-0.5">Parcelas</p>
+                            <p class="text-sm font-bold text-slate-700" id="previewInstallments">---</p>
+                        </div>
+                    </div>
+
+                    <!-- Destino da Compra -->
+                    <div class="mt-2 bg-slate-50 p-3 rounded-xl border border-slate-200">
+                        <p id="previewPurposeLabel" class="text-[10px] text-slate-400 font-bold uppercase tracking-wider mb-1">Destino / Motivo</p>
+                        <p class="text-sm text-slate-700 font-medium leading-relaxed" id="previewPurpose">---</p>
+                    </div>
+
+                    <!-- Área da Imagem -->
+                    <div id="previewImageContainer" class="mt-4 hidden flex-col items-center w-full">
+                        <p class="text-[10px] text-slate-400 font-bold uppercase tracking-wider mb-2 w-full border-b border-slate-100 pb-1">Imagens em Anexo</p>
+                        <div id="previewImagesGrid" class="grid grid-cols-1 sm:grid-cols-2 gap-4 w-full">
+                            <!-- Imagens geradas pelo JS -->
+                        </div>
+                    </div>
+
+                </div>
+
+                <div class="bg-slate-100 p-3 text-center border-t border-slate-200 shrink-0 mt-auto">
+                    <div class="flex justify-center items-center gap-2 text-[10px] text-slate-400 font-medium uppercase tracking-widest leading-relaxed">
+                        SPG SEDE • Controle Financeiro
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL DE CONFIRMAÇÃO DE ENVIO -->
+    <div id="confirmModal" class="fixed inset-0 bg-black/60 z-[60] hidden flex justify-center items-center backdrop-blur-sm transition-opacity duration-300">
+        <div class="bg-white rounded-2xl shadow-2xl p-6 w-11/12 max-w-md transform transition-all scale-100">
+            <div class="mx-auto flex items-center justify-center h-14 w-14 rounded-full bg-brand-50 mb-4">
+                <i data-lucide="send" class="h-8 w-8 text-brand-600"></i>
+            </div>
+            <h3 class="text-xl font-black text-slate-800 text-center">Confirmar Envio?</h3>
+            <p class="text-sm text-slate-500 mt-3 text-center leading-relaxed font-medium">
+                Verifique se os dados e as fotos anexadas estão corretos.<br><br>
+                <span class="text-brand-600 font-bold">As informações serão direcionadas para o WhatsApp.</span>
+            </p>
+            <div class="grid grid-cols-2 gap-3 mt-6">
+                <button onclick="hideConfirmModal()" class="px-4 py-3 bg-slate-100 hover:bg-slate-200 text-slate-600 font-bold rounded-xl text-sm transition-colors uppercase">
+                    Revisar
+                </button>
+                <button onclick="executeSend()" class="px-4 py-3 bg-brand-600 hover:bg-brand-700 text-white font-bold rounded-xl text-sm transition-all shadow-lg shadow-brand-600/20 active:scale-95 uppercase">
+                    Enviar
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL DE MENSAGEM -->
+    <div id="messageModal" class="fixed inset-0 bg-black/50 z-50 hidden flex justify-center items-center backdrop-blur-sm transition-opacity duration-300">
+        <div class="bg-white rounded-xl shadow-2xl p-6 w-11/12 max-w-sm transform transition-all scale-100 text-center">
+            <div id="msgIconContainer" class="mx-auto flex items-center justify-center h-12 w-12 rounded-full mb-4"></div>
+            <h3 id="msgTitle" class="text-lg font-bold text-slate-800"></h3>
+            <p id="msgText" class="text-sm text-slate-500 mt-2 mb-4"></p>
+            <button onclick="hideMessageModal()" class="w-full px-4 py-2 bg-slate-800 hover:bg-slate-900 text-white font-bold rounded-lg text-sm transition-colors">OK</button>
+        </div>
+    </div>
+
+    <script>
+        let currentPhotosBase64 = [];
+        let currentMode = 'compra'; // Modos: 'compra' ou 'nf'
+
+        const optionsCompra = `
+            <option value="">Selecione...</option>
+            <option value="Mercantil">Mercantil</option>
+            <option value="Americanas">Americanas</option>
+            <option value="Late & Mia - Clínica Veterinária">Late & Mia - Clínica Veterinária</option>
+            <option value="Casa do Trator">Casa do Trator</option>
+            <option value="Cequip">Cequip</option>
+            <option value="Casa de Variedades">Casa de Variedades</option>
+            <option value="Adrovando">Adrovando</option>
+            <option value="Posto de Combustível">Posto de Combustível</option>
+            <option value="Restaurante">Restaurante</option>
+            <option value="Pousada">Pousada</option>
+            <option value="Pedágio">Pedágio</option>
+            <option value="Uber">Uber</option>
+            <option value="Passagem de Ônibus">Passagem de Ônibus</option>
+            <option value="Serviços de Internet">Serviços de Internet</option>
+            <option value="Mercado Livre">Mercado Livre</option>
+            <option value="Outro">Outro (Digitar manualmente)</option>
+        `;
+
+        const optionsNF = `
+            <option value="">Selecione...</option>
+            <option value="Ximenes Cruzeiro">Ximenes Cruzeiro</option>
+            <option value="Ximenes Centro">Ximenes Centro</option>
+            <option value="Ximenes Tianguá">Ximenes Tianguá</option>
+            <option value="Chocobalas Ubajara">Chocobalas Ubajara</option>
+            <option value="Chocobalas São Benedito">Chocobalas São Benedito</option>
+            <option value="Chocobalas Guaraciaba do Norte">Chocobalas Guaraciaba do Norte</option>
+            <option value="Super dois Irmão Guaraciaba do Norte">Super dois Irmão Guaraciaba do Norte</option>
+            <option value="São Pedro">São Pedro</option>
+            <option value="Café com Rosas">Café com Rosas</option>
+            <option value="Nossa Senhora de Fátima">Nossa Senhora de Fátima</option>
+            <option value="Outro">Outro (Digitar manualmente)</option>
+        `;
+
+        // Inicialização
+        document.addEventListener("DOMContentLoaded", () => {
+            lucide.createIcons();
+            
+            const dateInput = document.getElementById('purchaseDate');
+            if (!dateInput.value) {
+                const today = new Date();
+                dateInput.value = today.toISOString().split('T')[0];
+            }
+            updatePreview();
+        });
+
+        // Alternador de Modos
+        function setMode(mode) {
+            currentMode = mode;
+            const isNF = mode === 'nf';
+            
+            // UI dos Botões Superiores
+            if (isNF) {
+                document.getElementById('btnModeNF').className = "flex-1 py-2.5 px-4 text-sm font-black rounded-lg bg-white shadow-sm text-brand-600 transition-all border border-slate-200/50";
+                document.getElementById('btnModeCompra').className = "flex-1 py-2.5 px-4 text-sm font-bold rounded-lg text-slate-500 hover:text-slate-700 hover:bg-slate-300/50 transition-all";
+                
+                // Alterando Títulos e Ícones do Formulário
+                document.getElementById('formIcon').setAttribute('data-lucide', 'file-check');
+                document.getElementById('formTitleText').innerText = "Dados da Entrega / NF";
+                
+                document.getElementById('lblDate').innerText = "Data da Entrega";
+                document.getElementById('lblEstablishment').innerText = "Cliente / Local de Entrega";
+                document.getElementById('lblPurpose').innerText = "Observações da Entrega";
+                document.getElementById('lblUser').innerText = "Entregador / Motorista";
+                
+                // Exibindo/Ocultando Campos
+                document.getElementById('amountContainer').classList.add('hidden');
+                document.getElementById('purchaseAmount').removeAttribute('required');
+                
+                document.getElementById('nfContainer').classList.remove('hidden');
+                // document.getElementById('nfNumber').setAttribute('required', 'required'); // Opcional
+                
+                document.getElementById('cardDigitsContainer').classList.add('hidden');
+                document.getElementById('cardLastDigits').removeAttribute('required');
+                document.getElementById('customCardName').removeAttribute('required');
+                
+                document.getElementById('paymentRow').classList.add('hidden');
+                document.getElementById('paymentType').removeAttribute('required');
+                
+                document.getElementById('userContainer').classList.remove('sm:col-span-1');
+                document.getElementById('userContainer').classList.add('sm:col-span-2');
+
+                // Mudar lista para Clientes de NF
+                document.getElementById('establishmentSelect').innerHTML = optionsNF;
+                document.getElementById('establishmentSelect').value = "";
+                handleEstablishmentChange();
+            } else {
+                document.getElementById('btnModeCompra').className = "flex-1 py-2.5 px-4 text-sm font-black rounded-lg bg-white shadow-sm text-brand-600 transition-all border border-slate-200/50";
+                document.getElementById('btnModeNF').className = "flex-1 py-2.5 px-4 text-sm font-bold rounded-lg text-slate-500 hover:text-slate-700 hover:bg-slate-300/50 transition-all";
+                
+                document.getElementById('formIcon').setAttribute('data-lucide', 'shopping-cart');
+                document.getElementById('formTitleText').innerText = "Dados da Compra";
+                
+                document.getElementById('lblDate').innerText = "Data da Compra";
+                document.getElementById('lblEstablishment').innerText = "Estabelecimento (Loja/Fornecedor)";
+                document.getElementById('lblPurpose').innerText = "Destino / Motivo da Compra";
+                document.getElementById('lblUser').innerText = "Quem usou o cartão?";
+                
+                document.getElementById('amountContainer').classList.remove('hidden');
+                document.getElementById('purchaseAmount').setAttribute('required', 'required');
+                
+                document.getElementById('nfContainer').classList.add('hidden');
+                
+                document.getElementById('cardDigitsContainer').classList.remove('hidden');
+                document.getElementById('cardLastDigits').setAttribute('required', 'required');
+                handleCardChange(); // Re-avalia se o campo customizado precisa ser obrigatório
+                
+                document.getElementById('paymentRow').classList.remove('hidden');
+                document.getElementById('paymentType').setAttribute('required', 'required');
+                
+                document.getElementById('userContainer').classList.remove('sm:col-span-2');
+                document.getElementById('userContainer').classList.add('sm:col-span-1');
+
+                // Voltar lista para Estabelecimentos de Compra
+                document.getElementById('establishmentSelect').innerHTML = optionsCompra;
+                document.getElementById('establishmentSelect').value = "";
+                handleEstablishmentChange();
+            }
+            
+            lucide.createIcons();
+            updatePreview();
+        }
+
+        // Controle do Select de Usuário
+        function handleUserChange() {
+            const userSelect = document.getElementById('userSelect');
+            const customContainer = document.getElementById('customUserContainer');
+            const customInput = document.getElementById('customUserName');
+            
+            if (userSelect.value === 'Outro') {
+                customContainer.classList.remove('hidden');
+                customInput.setAttribute('required', 'required');
+            } else {
+                customContainer.classList.add('hidden');
+                customInput.removeAttribute('required');
+            }
+            updatePreview();
+        }
+
+        function getUserName() {
+            const selectVal = document.getElementById('userSelect').value;
+            if (selectVal === 'Outro') {
+                return document.getElementById('customUserName').value;
+            }
+            return selectVal;
+        }
+
+        // Controle do Select de Estabelecimento
+        function handleEstablishmentChange() {
+            const select = document.getElementById('establishmentSelect');
+            const customContainer = document.getElementById('customEstablishmentContainer');
+            const customInput = document.getElementById('customEstablishmentName');
+            
+            if (select.value === 'Outro') {
+                customContainer.classList.remove('hidden');
+                customInput.setAttribute('required', 'required');
+            } else {
+                customContainer.classList.add('hidden');
+                customInput.removeAttribute('required');
+            }
+            updatePreview();
+        }
+
+        function getEstablishmentName() {
+            const selectVal = document.getElementById('establishmentSelect').value;
+            if (selectVal === 'Outro') {
+                return document.getElementById('customEstablishmentName').value;
+            }
+            return selectVal;
+        }
+
+        // Controle do Select de Cartão
+        function handleCardChange() {
+            const select = document.getElementById('cardLastDigits');
+            const customContainer = document.getElementById('customCardContainer');
+            const customInput = document.getElementById('customCardName');
+            
+            if (select.value === 'Outro') {
+                customContainer.classList.remove('hidden');
+                customInput.setAttribute('required', 'required');
+            } else {
+                customContainer.classList.add('hidden');
+                customInput.removeAttribute('required');
+            }
+            updatePreview();
+        }
+
+        function getCardName() {
+            const selectVal = document.getElementById('cardLastDigits').value;
+            if (selectVal === 'Outro') {
+                return document.getElementById('customCardName').value;
+            }
+            return selectVal;
+        }
+
+        // Controle do Tipo de Pagamento (Habilita/Desabilita parcelas)
+        function handlePaymentChange() {
+            const type = document.getElementById('paymentType').value;
+            const instContainer = document.getElementById('installmentsContainer');
+            const instSelect = document.getElementById('installments');
+
+            if (type === 'Débito') {
+                instContainer.classList.add('opacity-50', 'pointer-events-none');
+                instSelect.value = 'À vista';
+            } else if (type === 'Crédito') {
+                instContainer.classList.remove('opacity-50', 'pointer-events-none');
+            } else {
+                instContainer.classList.add('opacity-50', 'pointer-events-none');
+                instSelect.value = 'À vista';
+            }
+            updatePreview();
+        }
+
+        // Máscara de moeda para o input
+        function formatCurrency(input) {
+            let value = input.value.replace(/\D/g, ''); // Remove tudo que não for número
+            if (value === '') {
+                input.value = '';
+                return;
+            }
+            // Formata para ter 2 casas decimais e separadores de milhar
+            value = (parseInt(value, 10) / 100).toFixed(2);
+            input.value = value.replace('.', ',').replace(/(\d)(?=(\d{3})+(?!\d))/g, '$1.');
+        }
+
+        // Atualiza a visualização do cartão da direita em tempo real
+        function updatePreview() {
+            const isNF = currentMode === 'nf';
+            
+            // Coleta de dados
+            const dateVal = document.getElementById('purchaseDate').value;
+            const amountStr = document.getElementById('purchaseAmount').value;
+            const nfNum = document.getElementById('nfNumber').value;
+            const establishment = getEstablishmentName();
+            const purpose = document.getElementById('purchasePurpose').value;
+            const user = getUserName();
+            const cardDigits = getCardName();
+            const paymentType = document.getElementById('paymentType').value;
+            const installments = document.getElementById('installments').value;
+
+            // Formatar data
+            let displayDate = "--/--/----";
+            if (dateVal) {
+                const parts = dateVal.split('-');
+                displayDate = `${parts[2]}/${parts[1]}/${parts[0]}`;
+            }
+
+            // Formatar Valor e Parcelas (Apenas se for Compra)
+            let displayAmount = "R$ 0,00";
+            let installmentsDisplay = 'À vista';
+            
+            if (!isNF) {
+                let rawAmount = 0;
+                if (amountStr) {
+                    rawAmount = parseFloat(amountStr.replace(/\./g, '').replace(',', '.'));
+                    displayAmount = rawAmount.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+                }
+                
+                if (paymentType === 'Crédito' && installments !== 'À vista') {
+                    const num = parseInt(installments.replace('x', ''));
+                    if (num > 0) {
+                        const instValue = rawAmount / num;
+                        installmentsDisplay = `${installments} de ${instValue.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}`;
+                    }
+                }
+            }
+
+            // Inserção Dinâmica baseada no Modo
+            if (isNF) {
+                document.getElementById('previewTopLabel').innerText = "Nº da NF";
+                document.getElementById('previewAmount').innerText = nfNum || "---";
+                document.getElementById('previewMainTitle').innerText = "NOTA FISCAL";
+                document.getElementById('previewSubTitle').innerText = "Comprovante de Entrega";
+                
+                document.getElementById('previewEstabLabel').innerText = "CLIENTE / DESTINO";
+                document.getElementById('previewUserLabel').innerText = "ENTREGADOR";
+                document.getElementById('previewPurposeLabel').innerText = "OBSERVAÇÕES";
+                
+                document.getElementById('previewCardWrapper').classList.add('hidden');
+                document.getElementById('previewPaymentWrapper').classList.add('hidden');
+                document.getElementById('previewInstallmentsWrapper').classList.add('hidden');
+            } else {
+                document.getElementById('previewTopLabel').innerText = "Valor";
+                document.getElementById('previewAmount').innerText = displayAmount;
+                document.getElementById('previewMainTitle').innerText = "COMPROVANTE";
+                document.getElementById('previewSubTitle').innerText = "Registro de Despesa";
+                
+                document.getElementById('previewEstabLabel').innerText = "ESTABELECIMENTO";
+                document.getElementById('previewUserLabel').innerText = "QUEM USOU";
+                document.getElementById('previewPurposeLabel').innerText = "DESTINO / MOTIVO";
+                
+                document.getElementById('previewCardWrapper').classList.remove('hidden');
+                document.getElementById('previewPaymentWrapper').classList.remove('hidden');
+                document.getElementById('previewInstallmentsWrapper').classList.remove('hidden');
+            }
+
+            // Inserir valores padrão que servem pros 2
+            document.getElementById('previewDate').innerText = displayDate;
+            document.getElementById('previewEstablishment').innerText = establishment || '---';
+            document.getElementById('previewUser').innerText = user || '---';
+            document.getElementById('previewPurpose').innerText = purpose || '---';
+            
+            // Valores de pagamento (só mostram na Compra)
+            if (!isNF) {
+                document.getElementById('previewCardDigits').innerText = cardDigits || '----';
+                document.getElementById('previewPaymentType').innerText = paymentType || '---';
+                document.getElementById('previewInstallments').innerText = installmentsDisplay;
+            }
+        }
+
+        // Lógica de Imagem
+        async function handleImageUpload(event) {
+            const files = Array.from(event.target.files);
+            if (!files.length) return;
+            
+            if (currentPhotosBase64.length + files.length > 2) {
+                showMessageModal('Limite Excedido', 'Você pode enviar no máximo 2 fotos.', 'error');
+                document.getElementById('photoUpload').value = '';
+                return;
+            }
+
+            const uploadBtn = document.getElementById('photoUpload');
+            uploadBtn.disabled = true;
+            
+            for (const file of files) {
+                if (!file.type.startsWith('image/')) continue;
+                const base64 = await processImage(file);
+                currentPhotosBase64.push(base64);
+            }
+            
+            uploadBtn.value = '';
+            uploadBtn.disabled = false;
+            
+            if (currentPhotosBase64.length > 0) {
+                uploadBtn.removeAttribute('required');
+            } else {
+                uploadBtn.setAttribute('required', 'required');
+            }
+            
+            renderPhotoPreviews();
+            updatePreview();
+        }
+
+        function processImage(file) {
+            return new Promise((resolve) => {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const img = new Image();
+                    img.onload = function() {
+                        const canvas = document.createElement('canvas');
+                        // Resolução máxima em HD/4K para telefones de alta performance
+                        const MAX_WIDTH = 2160; const MAX_HEIGHT = 3840;
+                        let width = img.width; let height = img.height;
+                        
+                        if (width > height) { 
+                            if (width > MAX_WIDTH) { height *= MAX_WIDTH / width; width = MAX_WIDTH; } 
+                        } else { 
+                            if (height > MAX_HEIGHT) { width *= MAX_HEIGHT / height; height = MAX_HEIGHT; } 
+                        }
+                        
+                        canvas.width = width; canvas.height = height;
+                        const ctx = canvas.getContext('2d'); ctx.drawImage(img, 0, 0, width, height);
+                        // Qualidade alterada para 1.0 (100% - Sem perda)
+                        resolve(canvas.toDataURL('image/jpeg', 1.0));
+                    }
+                    img.src = e.target.result;
+                }
+                reader.readAsDataURL(file);
+            });
+        }
+
+        function renderPhotoPreviews() {
+            document.getElementById('photoCounter').innerText = `${currentPhotosBase64.length}/2`;
+            
+            const imgContainer = document.getElementById('previewImageContainer');
+            const grid = document.getElementById('previewImagesGrid');
+            
+            if (currentPhotosBase64.length === 0) {
+                imgContainer.classList.add('hidden');
+                imgContainer.classList.remove('flex');
+                grid.innerHTML = '';
+                document.getElementById('photoUpload').setAttribute('required', 'required');
+                return;
+            }
+            
+            imgContainer.classList.remove('hidden');
+            imgContainer.classList.add('flex');
+            
+            grid.innerHTML = currentPhotosBase64.map((photo, index) => `
+                <div class="relative w-full flex justify-center bg-white p-2 rounded-xl border border-slate-200 shadow-sm">
+                    <img src="${photo}" class="w-full h-auto object-contain rounded-lg" style="max-height: 250px;">
+                    <button type="button" onclick="removePhoto(${index})" class="absolute -top-2 -right-2 bg-white border border-slate-200 text-red-500 rounded-full p-1.5 shadow-md hover:bg-red-50 transition-colors">
+                        <i data-lucide="x" class="w-4 h-4"></i>
+                    </button>
+                </div>
+            `).join('');
+            
+            lucide.createIcons();
+        }
+
+        function removePhoto(index) { 
+            currentPhotosBase64.splice(index, 1);
+            renderPhotoPreviews();
+            updatePreview();
+        }
+
+        // Envio do Relatório
+        function confirmBeforeSend() {
+            const form = document.getElementById('receiptForm');
+            
+            // Verifica primeiro se todos os campos obrigatórios estão preenchidos
+            if (!form.checkValidity()) {
+                form.reportValidity();
+                return;
+            }
+            
+            // Depois verifica se a foto foi anexada
+            if (currentPhotosBase64.length === 0) {
+                showMessageModal('Foto Ausente', 'Por favor, anexe a foto do comprovante/NF antes de enviar.', 'error');
+                return;
+            }
+
+            document.getElementById('confirmModal').classList.remove('hidden'); 
+            lucide.createIcons(); 
+        }
+
+        function hideConfirmModal() { document.getElementById('confirmModal').classList.add('hidden'); }
+        
+        function executeSend() { 
+            hideConfirmModal(); 
+            downloadAndShare(); 
+        }
+
+        let isProcessingShare = false;
+
+        async function downloadAndShare() {
+            if (isProcessingShare) return;
+            isProcessingShare = true;
+
+            const btnSpan = document.querySelector('button[onclick="confirmBeforeSend()"] span.hidden.sm\\:inline') || document.querySelector('button[onclick="confirmBeforeSend()"] span');
+            const originalText = btnSpan.innerText; 
+            btnSpan.innerText = "Preparando Envio...";
+
+            try {
+                const isNF = currentMode === 'nf';
+                
+                // Dados em comum
+                const dateVal = document.getElementById('purchaseDate').value;
+                const establishment = getEstablishmentName();
+                const purpose = document.getElementById('purchasePurpose').value;
+                const user = getUserName();
+                
+                const dateObj = new Date(dateVal + "T00:00:00");
+                const displayDate = dateObj.toLocaleDateString('pt-BR');
+                
+                let shareText = "";
+                const filenameBase = `${isNF ? 'Nota_Fiscal' : 'Comprovante'} - ${establishment} - ${displayDate.replace(/\//g, '-')}`;
+
+                // Dados específicos de Pagamento e Montagem do Texto WhatsApp
+                let amountStr = "0,00", amount = "0,00", cardDigits = "-", paymentType = "-", installments = "-", nfNum = "-";
+
+                if (isNF) {
+                    nfNum = document.getElementById('nfNumber').value || "Não informado";
+                    
+                    shareText += `📄 *ENTREGA DE PEDIDO SPG*\n\n`;
+                    shareText += `*Data da Entrega:* ${displayDate}\n`;
+                    shareText += `*Entregador:* ${user}\n`;
+                    shareText += `*Cliente/Local:* ${establishment}\n`;
+                    shareText += `*Número da NF:* ${nfNum}\n`;
+                    shareText += `*Observações:* ${purpose}\n`;
+                    
+                } else {
+                    amountStr = document.getElementById('purchaseAmount').value || "0,00";
+                    amount = parseFloat(amountStr.replace(/\./g, '').replace(',', '.')).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+                    cardDigits = getCardName();
+                    paymentType = document.getElementById('paymentType').value;
+                    installments = document.getElementById('previewInstallments').innerText;
+                    
+                    shareText += `🧾 *COMPROVANTE DE COMPRA SPG*\n\n`;
+                    shareText += `*Data:* ${displayDate}\n`;
+                    shareText += `*Responsável:* ${user}\n`;
+                    shareText += `*Estabelecimento:* ${establishment}\n`;
+                    shareText += `*Destino/Motivo:* ${purpose}\n\n`;
+                    shareText += `💳 *DADOS DO PAGAMENTO*\n`;
+                    shareText += `*Valor:* ${amount}\n`;
+                    shareText += `*Cartão Final:* ${cardDigits}\n`;
+                    shareText += `*Tipo:* ${paymentType}\n`;
+                    shareText += `*Parcelas:* ${installments}\n`;
+                }
+
+                // --- ENVIO PARA O GOOGLE SHEETS ---
+                const now = new Date();
+                const payload = {
+                    tipoRegistro: isNF ? 'Entrega NF' : 'Compra',
+                    date: displayDate,
+                    time: now.toLocaleTimeString('pt-BR'),
+                    amount: isNF ? '-' : amount,
+                    nfNumber: isNF ? nfNum : '-',
+                    establishment: establishment,
+                    purpose: purpose,
+                    user: user,
+                    cardDigits: isNF ? '-' : cardDigits,
+                    paymentType: isNF ? '-' : paymentType,
+                    installments: isNF ? '-' : installments
+                };
+                
+                sendDataToGoogleSheets(payload);
+
+                // Criar arquivo a partir da foto original processada (base64)
+                const filesArray = [];
+                
+                for (let i = 0; i < currentPhotosBase64.length; i++) {
+                    const response = await fetch(currentPhotosBase64[i]);
+                    const blob = await response.blob();
+                    const ext = currentPhotosBase64.length > 1 ? `_Anexo${i+1}.jpg` : `.jpg`;
+                    filesArray.push(new File([blob], `${filenameBase}${ext}`, { type: 'image/jpeg' }));
+                }
+
+                if (navigator.share && navigator.canShare && navigator.canShare({ files: filesArray })) { 
+                    try {
+                        await navigator.share({ files: filesArray, title: filenameBase, text: shareText }); 
+                    } catch (shareErr) {
+                        console.log("Compartilhamento cancelado ou falhou:", shareErr);
+                    }
+                } else { 
+                    filesArray.forEach((file, idx) => {
+                        downloadFile(currentPhotosBase64[idx], file.name); 
+                    });
+                    setTimeout(() => { window.open(`https://web.whatsapp.com/send?text=${encodeURIComponent(shareText)}`, '_blank'); }, 1500); 
+                }
+            } catch (err) { 
+                console.error(err);
+                showMessageModal('Erro', 'Falha ao preparar o registro.', 'error'); 
+            } finally { 
+                if(btnSpan) btnSpan.innerText = originalText; 
+                isProcessingShare = false;
+            }
+        }
+
+        async function sendDataToGoogleSheets(payload) {
+            // URL configurada do Apps Script - Se quiser salvar isso numa planilha, atualize a URL
+            const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzOT5nv3C9ILZZM1VzRHkFKRvTFv5ngbIds57IbsXXoyFQeev-GZFT9Glu2Zlwd8kMA/exec"; 
+            
+            if (!SCRIPT_URL || SCRIPT_URL === "SUA_URL_DO_APPS_SCRIPT_AQUI") {
+                console.log("URL do Apps Script não configurada.");
+                return;
+            }
+            
+            try { 
+                await fetch(SCRIPT_URL, { 
+                    method: 'POST', 
+                    mode: 'no-cors', 
+                    headers: { 'Content-Type': 'text/plain;charset=utf-8' }, 
+                    body: JSON.stringify(payload) 
+                }); 
+                console.log("Dados enviados para a planilha com sucesso!");
+            } catch (err) {
+                console.error("Erro ao enviar para a planilha:", err);
+            }
+        }
+
+        function downloadFile(uri, name) { 
+            const link = document.createElement('a'); 
+            link.href = uri; link.download = name; 
+            document.body.appendChild(link); link.click(); document.body.removeChild(link); 
+        }
+
+        function showMessageModal(title, message, type) {
+            const modal = document.getElementById('messageModal'); 
+            const iconContainer = document.getElementById('msgIconContainer');
+            const titleEl = document.getElementById('msgTitle'); 
+            const textEl = document.getElementById('msgText');
+            titleEl.innerText = title; textEl.innerText = message;
+            if (type === 'error') { iconContainer.className = "mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-red-100 mb-4"; iconContainer.innerHTML = '<i data-lucide="alert-circle" class="h-6 w-6 text-red-600"></i>'; } 
+            else if (type === 'success') { iconContainer.className = "mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-green-100 mb-4"; iconContainer.innerHTML = '<i data-lucide="check-circle" class="h-6 w-6 text-green-600"></i>'; }
+            else { iconContainer.className = "mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-blue-100 mb-4"; iconContainer.innerHTML = '<i data-lucide="info" class="h-6 w-6 text-blue-600"></i>'; }
+            modal.classList.remove('hidden'); lucide.createIcons();
+        }
+        
+        function hideMessageModal() { document.getElementById('messageModal').classList.add('hidden'); }
+    </script>
+</body>
+</html>
