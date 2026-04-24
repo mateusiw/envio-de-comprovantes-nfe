@@ -384,7 +384,11 @@
             const dateInput = document.getElementById('purchaseDate');
             if (!dateInput.value) {
                 const today = new Date();
-                dateInput.value = today.toISOString().split('T')[0];
+                // Pegando a data local correta para evitar o adiantamento do fuso UTC
+                const yyyy = today.getFullYear();
+                const mm = String(today.getMonth() + 1).padStart(2, '0');
+                const dd = String(today.getDate()).padStart(2, '0');
+                dateInput.value = `${yyyy}-${mm}-${dd}`;
             }
             updatePreview();
         });
