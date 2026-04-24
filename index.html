@@ -819,6 +819,46 @@
             hideClearConfirmModal();
         }
 
+        // Mesclagem de imagens para compartilhar um único arquivo
+        function mergeImagesVertically(imagesBase64) {
+            return new Promise((resolve) => {
+                const imgObjects = [];
+                let loaded = 0;
+                imagesBase64.forEach((base64, index) => {
+                    const img = new Image();
+                    img.onload = () => {
+                        loaded++;
+                        if (loaded === imagesBase64.length) {
+                            // Calcula largura máxima e altura total
+                            const maxWidth = Math.max(...imgObjects.map(img => img.width));
+                            const totalHeight = imgObjects.reduce((sum, img) => sum + img.height, 0);
+                            
+                            const canvas = document.createElement('canvas');
+                            canvas.width = maxWidth;
+                            canvas.height = totalHeight;
+                            const ctx = canvas.getContext('2d');
+                            
+                            // Fundo branco
+                            ctx.fillStyle = '#ffffff';
+                            ctx.fillRect(0, 0, canvas.width, canvas.height);
+                            
+                            let currentY = 0;
+                            imgObjects.forEach(img => {
+                                // Centraliza a imagem se ela for mais estreita que a largura máxima
+                                const x = (maxWidth - img.width) / 2;
+                                ctx.drawImage(img, x, currentY);
+                                currentY += img.height;
+                            });
+                            
+                            resolve(canvas.toDataURL('image/jpeg', 1.0));
+                        }
+                    };
+                    img.src = base64;
+                    imgObjects[index] = img;
+                });
+            });
+        }
+
         // Envio do Relatório
         function confirmBeforeSend() {
             const form = document.getElementById('receiptForm');
@@ -921,15 +961,18 @@
                 
                 sendDataToGoogleSheets(payload);
 
-                // Criar arquivo a partir da foto original processada (base64)
-                const filesArray = [];
-                
-                for (let i = 0; i < currentPhotosBase64.length; i++) {
-                    const response = await fetch(currentPhotosBase64[i]);
-                    const blob = await response.blob();
-                    const ext = currentPhotosBase64.length > 1 ? `_Anexo${i+1}.jpg` : `.jpg`;
-                    filesArray.push(new File([blob], `${filenameBase}${ext}`, { type: 'image/jpeg' }));
+                // Mescla as imagens se houver mais de uma
+                let finalImageBase64 = currentPhotosBase64[0];
+                if (currentPhotosBase64.length > 1) {
+                    btnSpan.innerText = "Mesclando Imagens...";
+                    finalImageBase64 = await mergeImagesVertically(currentPhotosBase64);
                 }
+
+                // Cria o arquivo ÚNICO final
+                const response = await fetch(finalImageBase64);
+                const blob = await response.blob();
+                const file = new File([blob], `${filenameBase}.jpg`, { type: 'image/jpeg' });
+                const filesArray = [file];
 
                 if (navigator.share && navigator.canShare && navigator.canShare({ files: filesArray })) { 
                     try {
@@ -938,9 +981,7 @@
                         console.log("Compartilhamento cancelado ou falhou:", shareErr);
                     }
                 } else { 
-                    filesArray.forEach((file, idx) => {
-                        downloadFile(currentPhotosBase64[idx], file.name); 
-                    });
+                    downloadFile(finalImageBase64, file.name);
                     setTimeout(() => { window.open(`https://web.whatsapp.com/send?text=${encodeURIComponent(shareText)}`, '_blank'); }, 1500); 
                 }
             } catch (err) { 
