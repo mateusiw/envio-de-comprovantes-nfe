@@ -435,6 +435,7 @@
                 document.getElementById('lblDate').innerText = "Data da Entrega";
                 document.getElementById('lblEstablishment').innerText = "Cliente / Local de Entrega";
                 document.getElementById('lblPurpose').innerText = "Observações da Entrega";
+                document.getElementById('purchasePurpose').removeAttribute('required');
                 document.getElementById('lblUser').innerText = "Entregador / Motorista";
                 
                 // Exibindo/Ocultando Campos
@@ -468,6 +469,7 @@
                 document.getElementById('lblDate').innerText = "Data da Compra";
                 document.getElementById('lblEstablishment').innerText = "Estabelecimento (Loja/Fornecedor)";
                 document.getElementById('lblPurpose').innerText = "Destino / Motivo da Compra";
+                document.getElementById('purchasePurpose').setAttribute('required', 'required');
                 document.getElementById('lblUser').innerText = "Quem usou o cartão?";
                 
                 document.getElementById('amountContainer').classList.remove('hidden');
