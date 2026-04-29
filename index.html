@@ -141,9 +141,14 @@
                         </div>
                     </div>
 
-                    <div>
-                        <label id="lblPurpose" class="text-xs font-bold text-slate-500 uppercase mb-1 block">Destino / Motivo da Compra</label>
+                    <div id="compraPurposeContainer">
+                        <label class="text-xs font-bold text-slate-500 uppercase mb-1 block">Destino / Motivo da Compra</label>
                         <input type="text" id="purchasePurpose" placeholder="Ex: Abastecimento do caminhão, Material para escritório..." required oninput="updatePreview()" class="w-full p-2 border border-slate-300 rounded-lg text-sm bg-white focus:ring-2 focus:ring-brand-500 outline-none">
+                    </div>
+
+                    <div id="nfPurposeContainer" class="hidden">
+                        <label class="text-xs font-bold text-slate-500 uppercase mb-1 block">Observações da Entrega</label>
+                        <input type="text" id="nfPurpose" placeholder="Ex: Entregue para o porteiro..." oninput="updatePreview()" class="w-full p-2 border border-slate-300 rounded-lg text-sm bg-white focus:ring-2 focus:ring-brand-500 outline-none">
                     </div>
 
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
@@ -165,8 +170,8 @@
                             <label class="text-xs font-bold text-slate-500 uppercase mb-1 block">Cartão Utilizado</label>
                             <select id="cardLastDigits" required onchange="handleCardChange()" class="w-full p-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand-500 outline-none text-sm bg-white font-bold">
                                 <option value="">Selecione...</option>
-                                <option value="Visa 9140">Visa 9140</option>
-                                <option value="Mastercard 5294">Mastercard 5294</option>
+                                <option value="5294 - Mastercard (Azul Paulo Selbach)">5294 - Mastercard (Azul Paulo Selbach)</option>
+                                <option value="9140 - Visa (Platinum SPG)">9140 - Visa (Platinum SPG)</option>
                                 <option value="Outro">Outro (Digitar manualmente)</option>
                             </select>
                             
@@ -434,8 +439,11 @@
                 
                 document.getElementById('lblDate').innerText = "Data da Entrega";
                 document.getElementById('lblEstablishment').innerText = "Cliente / Local de Entrega";
-                document.getElementById('lblPurpose').innerText = "Observações da Entrega";
+                
+                document.getElementById('compraPurposeContainer').classList.add('hidden');
                 document.getElementById('purchasePurpose').removeAttribute('required');
+                document.getElementById('nfPurposeContainer').classList.remove('hidden');
+                
                 document.getElementById('lblUser').innerText = "Entregador / Motorista";
                 
                 // Exibindo/Ocultando Campos
@@ -468,8 +476,11 @@
                 
                 document.getElementById('lblDate').innerText = "Data da Compra";
                 document.getElementById('lblEstablishment').innerText = "Estabelecimento (Loja/Fornecedor)";
-                document.getElementById('lblPurpose').innerText = "Destino / Motivo da Compra";
+                
+                document.getElementById('nfPurposeContainer').classList.add('hidden');
+                document.getElementById('compraPurposeContainer').classList.remove('hidden');
                 document.getElementById('purchasePurpose').setAttribute('required', 'required');
+                
                 document.getElementById('lblUser').innerText = "Quem usou o cartão?";
                 
                 document.getElementById('amountContainer').classList.remove('hidden');
@@ -608,7 +619,7 @@
             const amountStr = document.getElementById('purchaseAmount').value;
             const nfNum = document.getElementById('nfNumber').value;
             const establishment = getEstablishmentName();
-            const purpose = document.getElementById('purchasePurpose').value;
+            const purpose = isNF ? document.getElementById('nfPurpose').value : document.getElementById('purchasePurpose').value;
             const user = getUserName();
             const cardDigits = getCardName();
             const paymentType = document.getElementById('paymentType').value;
@@ -904,7 +915,7 @@
                 // Dados em comum
                 const dateVal = document.getElementById('purchaseDate').value;
                 const establishment = getEstablishmentName();
-                const purpose = document.getElementById('purchasePurpose').value;
+                const purpose = isNF ? document.getElementById('nfPurpose').value : document.getElementById('purchasePurpose').value;
                 const user = getUserName();
                 
                 const dateObj = new Date(dateVal + "T00:00:00");
