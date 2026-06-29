@@ -6,9 +6,9 @@
     <title>Envio de Comprovantes SPG</title>
     
     <!-- Ícones Modernos -->
-    <link id="siteFavicon" rel="icon" type="image/png" href="https://img.icons8.com/fluency/512/receipt.png">
-    <link id="siteAppleTouchIcon" rel="apple-touch-icon" href="https://img.icons8.com/fluency/512/receipt.png">
-    <link id="siteManifest" rel="manifest" href='data:application/manifest+json,{"name":"Comprovantes SPG","short_name":"Recibos","start_url":".","scope":".","display":"standalone","background_color":"#ffffff","theme_color":"#759587","icons":[{"src":"https://img.icons8.com/fluency/512/receipt.png","sizes":"192x192","type":"image/png","purpose":"any"},{"src":"https://img.icons8.com/fluency/512/receipt.png","sizes":"512x512","type":"image/png","purpose":"any maskable"}]}'>
+    <link id="siteFavicon" rel="icon" type="image/png" href="https://i.imgur.com/KBJtLvM.png">
+    <link id="siteAppleTouchIcon" rel="apple-touch-icon" href="https://i.imgur.com/KBJtLvM.png">
+    <link id="siteManifest" rel="manifest" href='data:application/manifest+json,{"name":"Comprovantes SPG","short_name":"Recibos","start_url":".","scope":".","display":"standalone","background_color":"#ffffff","theme_color":"#759587","icons":[{"src":"https://i.imgur.com/KBJtLvM.png","sizes":"192x192","type":"image/png","purpose":"any"},{"src":"https://i.imgur.com/KBJtLvM.png","sizes":"512x512","type":"image/png","purpose":"any maskable"}]}'>
     
     <meta name="theme-color" content="#759587">
     <meta name="apple-mobile-web-app-capable" content="yes">
@@ -454,61 +454,7 @@
         }
 
         function getBrandLogoDataUri() {
-            const size = 512;
-            const canvas = document.createElement('canvas');
-            canvas.width = size;
-            canvas.height = size;
-
-            const ctx = canvas.getContext('2d');
-            if (!ctx) return 'https://img.icons8.com/fluency/512/receipt.png';
-
-            const radius = 104;
-            const gradient = ctx.createLinearGradient(0, 0, size, size);
-            gradient.addColorStop(0, '#759587');
-            gradient.addColorStop(1, '#4b6357');
-
-            ctx.fillStyle = gradient;
-            ctx.beginPath();
-            ctx.roundRect(0, 0, size, size, radius);
-            ctx.fill();
-
-            ctx.fillStyle = 'rgba(255, 255, 255, 0.16)';
-            ctx.beginPath();
-            ctx.arc(392, 120, 150, 0, Math.PI * 2);
-            ctx.fill();
-
-            ctx.fillStyle = 'rgba(255, 255, 255, 0.12)';
-            ctx.beginPath();
-            ctx.arc(132, 412, 126, 0, Math.PI * 2);
-            ctx.fill();
-
-            ctx.fillStyle = '#ffffff';
-            ctx.beginPath();
-            ctx.roundRect(154, 108, 204, 296, 30);
-            ctx.fill();
-
-            ctx.fillStyle = '#759587';
-            ctx.beginPath();
-            ctx.roundRect(182, 136, 148, 52, 18);
-            ctx.fill();
-
-            ctx.fillStyle = '#4b6357';
-            ctx.beginPath();
-            ctx.roundRect(182, 214, 148, 18, 9);
-            ctx.fill();
-            ctx.beginPath();
-            ctx.roundRect(182, 248, 148, 18, 9);
-            ctx.fill();
-            ctx.beginPath();
-            ctx.roundRect(182, 282, 120, 18, 9);
-            ctx.fill();
-
-            ctx.fillStyle = '#759587';
-            ctx.beginPath();
-            ctx.roundRect(182, 338, 74, 20, 10);
-            ctx.fill();
-
-            return canvas.toDataURL('image/png');
+            return 'https://i.imgur.com/KBJtLvM.png';
         }
 
         function applyBrandAssets() {
