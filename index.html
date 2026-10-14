@@ -357,6 +357,44 @@
                         </select>
                     </div>
 
+                    <div>
+                        <label class="text-xs font-bold text-slate-500 uppercase mb-1 block">Horário de saída do motorista</label>
+                        <div class="flex gap-2">
+                            <input type="time" id="motoristaSaida" required oninput="onSaidaChange()" class="flex-1 min-w-0 p-2 border border-slate-300 rounded-lg text-sm bg-white focus:ring-2 focus:ring-brand-500 outline-none font-bold">
+                            <button type="button" onclick="setSaidaAgora()" class="px-4 py-2 border border-slate-300 rounded-lg text-sm font-semibold text-slate-700 bg-slate-50 hover:bg-slate-100 active:scale-95 transition-all">Agora</button>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="text-xs font-bold text-slate-500 uppercase mb-1 block">Carregamento</label>
+                            <select id="motoristaCarregamento" required onchange="updateMotoristaPreview()" class="w-full p-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand-500 outline-none text-sm bg-white font-bold">
+                                <option value="1º" selected>1º carregamento</option>
+                                <option value="2º">2º carregamento</option>
+                                <option value="3º">3º carregamento</option>
+                                <option value="4º">4º carregamento</option>
+                                <option value="5º">5º carregamento</option>
+                                <option value="6º">6º carregamento</option>
+                                <option value="7º">7º carregamento</option>
+                                <option value="8º">8º carregamento</option>
+                                <option value="9º">9º carregamento</option>
+                                <option value="10º">10º carregamento</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="text-xs font-bold text-slate-500 uppercase mb-1 block">Finalizado?</label>
+                            <select id="motoristaFinalizado" onchange="onFinalizadoChange()" class="w-full p-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand-500 outline-none text-sm bg-white font-bold">
+                                <option value="nao" selected>Não</option>
+                                <option value="sim">Sim</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div id="motoristaPrevisaoWrap">
+                        <label class="text-xs font-bold text-slate-500 uppercase mb-1 block">Previsão de caixas para a próxima viagem</label>
+                        <input type="number" inputmode="numeric" min="1" id="motoristaPrevisao" required oninput="updateMotoristaPreview()" placeholder="Ex: 40" class="w-full p-2 border border-slate-300 rounded-lg text-sm bg-white focus:ring-2 focus:ring-brand-500 outline-none font-bold">
+                    </div>
+
                     <!-- Itens da carga -->
                     <div class="pt-2">
                         <div class="flex items-center justify-between mb-2">
@@ -381,17 +419,12 @@
                         <div class="grid grid-cols-2 gap-4">
                             <div>
                                 <p class="text-xs font-bold text-slate-500 uppercase mb-1">Tempo de viagem</p>
-                                <p class="p-2 text-lg font-black text-brand-700 leading-tight" id="motoristaTempo">Buscando GPS...</p>
+                                <p class="p-2 text-lg font-black text-brand-700 leading-tight" id="motoristaTempo">11 min</p>
                             </div>
                             <div>
                                 <p class="text-xs font-bold text-slate-500 uppercase mb-1">Chegada prevista</p>
-                                <p class="p-2 text-lg font-black text-brand-700 leading-tight" id="motoristaChegada">Ao enviar</p>
+                                <p class="p-2 text-lg font-black text-brand-700 leading-tight" id="motoristaChegada">--:--</p>
                             </div>
-                        </div>
-                        <!-- Só aparece se o GPS não funcionar -->
-                        <div id="motoristaManualWrap" class="hidden animate-fade-in-down">
-                            <label class="text-xs font-bold text-red-500 uppercase mb-1 block">GPS indisponível: tempo manual (min)</label>
-                            <input type="number" inputmode="numeric" min="1" id="motoristaMinutos" placeholder="Ex: 11" class="w-full p-2 border border-red-300 rounded-lg text-sm bg-white focus:ring-2 focus:ring-brand-500 outline-none font-bold">
                         </div>
                         <p id="motoristaRotaInfo" class="text-[11px] text-slate-500 font-medium leading-relaxed"></p>
                         <a id="motoristaWazeLink" href="#" target="_blank" rel="noopener" class="inline-flex items-center gap-1 text-xs font-bold text-sky-600 hover:underline">
@@ -672,12 +705,10 @@
 
             if (isMotorista) {
                 lucide.createIcons();
-                iniciarGpsMotorista();
                 updateMotoristaPreview();
                 if (!isRestoring) saveState();
                 return;
             }
-            pararGpsMotorista(); // economiza bateria fora da aba Motorista
 
             // Só troca a lista de estabelecimentos se o tipo de formulário mudou (ida e volta pela aba Motorista mantém os dados)
             const listChanged = mode !== lastFinanceMode;
@@ -1342,26 +1373,26 @@
         const VARIEDADES = ['BRO', 'Master'];
         const VARIEDADE_PADRAO = 'BRO';
 
+        // Trajeto Fazenda Oásis -> SPG sempre leva o mesmo tempo
+        const TEMPO_VIAGEM_MIN = 11;
+
         let motoristaItens = []; // [{ bloco, variedade, caixas }]
-        let motoristaRota = { km: null, fonte: null, calculadoEm: null }; // fonte: 'gps' | 'manual'
 
         function initMotorista() {
             document.getElementById('destinoNomeLabel').innerText = DESTINO_MOTORISTA.nome;
             const wazeLink = document.getElementById('motoristaWazeLink');
-            if (hasDestinoCoords()) {
-                wazeLink.href = `https://waze.com/ul?ll=${DESTINO_MOTORISTA.lat},${DESTINO_MOTORISTA.lng}&navigate=yes`;
-            } else {
-                wazeLink.classList.add('hidden');
-            }
+            wazeLink.href = `https://waze.com/ul?ll=${DESTINO_MOTORISTA.lat},${DESTINO_MOTORISTA.lng}&navigate=yes`;
 
             // Restaura o estado da sessão (e o nome/veículo lembrados no aparelho)
             let saved = null;
             try { saved = JSON.parse(sessionStorage.getItem('spgMotoristaState')); } catch (e) {}
             if (saved) {
                 motoristaItens = saved.itens || [];
-                motoristaRota = saved.rota || motoristaRota;
                 document.getElementById('motoristaNome').value = saved.nome || MOTORISTA_PADRAO;
-                document.getElementById('motoristaMinutos').value = saved.minutos || '';
+                document.getElementById('motoristaSaida').value = saved.saida || '';
+                document.getElementById('motoristaCarregamento').value = saved.carregamento || '1º';
+                document.getElementById('motoristaFinalizado').value = saved.finalizado || 'nao';
+                document.getElementById('motoristaPrevisao').value = saved.previsao || '';
             } else {
                 try {
                     document.getElementById('motoristaNome').value = localStorage.getItem('spgMotoristaNome') || MOTORISTA_PADRAO;
@@ -1369,8 +1400,9 @@
             }
             // Itens salvos com variedade fora da lista voltam para o padrão
             motoristaItens.forEach(i => { if (!VARIEDADES.includes(i.variedade)) i.variedade = VARIEDADE_PADRAO; });
-            if (motoristaItens.length === 0) motoristaItens.push({ bloco: '', variedade: VARIEDADE_PADRAO, caixas: '' });
+            if (motoristaItens.length === 0) motoristaItens.push({ bloco: '', variedade: VARIEDADE_PADRAO, caixas: '', media: '' });
 
+            aplicarFinalizado();
             renderCargaRows();
             renderMotoristaSugestoes();
 
@@ -1386,16 +1418,14 @@
             updateMotoristaPreview();
         }
 
-        function hasDestinoCoords() {
-            return typeof DESTINO_MOTORISTA.lat === 'number' && typeof DESTINO_MOTORISTA.lng === 'number';
-        }
-
         function saveMotoristaState() {
             const state = {
                 nome: document.getElementById('motoristaNome').value,
-                minutos: document.getElementById('motoristaMinutos').value,
-                itens: motoristaItens,
-                rota: motoristaRota
+                saida: document.getElementById('motoristaSaida').value,
+                carregamento: document.getElementById('motoristaCarregamento').value,
+                finalizado: document.getElementById('motoristaFinalizado').value,
+                previsao: document.getElementById('motoristaPrevisao').value,
+                itens: motoristaItens
             };
             try { sessionStorage.setItem('spgMotoristaState', JSON.stringify(state)); } catch (e) {}
         }
@@ -1408,19 +1438,23 @@
             const canRemove = motoristaItens.length > 1;
             document.getElementById('cargaRows').innerHTML = motoristaItens.map((item, i) => `
                 <div class="grid grid-cols-12 gap-2 items-end bg-slate-50 p-2 rounded-xl border border-slate-200 animate-fade-in-down">
-                    <div class="col-span-3">
+                    <div class="col-span-2">
                         <label class="text-[10px] font-bold text-slate-400 uppercase block mb-0.5">Bloco</label>
-                        <input type="text" list="blocoSugestoes" required data-idx="${i}" data-field="bloco" value="${escapeHtml(item.bloco)}" placeholder="Ex: 5" class="w-full p-2 border border-slate-300 rounded-lg text-sm bg-white focus:ring-2 focus:ring-brand-500 outline-none font-bold">
+                        <input type="text" list="blocoSugestoes" required data-idx="${i}" data-field="bloco" value="${escapeHtml(item.bloco)}" placeholder="5" class="w-full px-1.5 py-2 border border-slate-300 rounded-lg text-sm bg-white focus:ring-2 focus:ring-brand-500 outline-none font-bold">
                     </div>
-                    <div class="col-span-5">
+                    <div class="col-span-3">
                         <label class="text-[10px] font-bold text-slate-400 uppercase block mb-0.5">Variedade</label>
-                        <select required data-idx="${i}" data-field="variedade" class="w-full p-2 border border-slate-300 rounded-lg text-sm bg-white focus:ring-2 focus:ring-brand-500 outline-none font-bold">
+                        <select required data-idx="${i}" data-field="variedade" class="w-full px-1 py-2 border border-slate-300 rounded-lg text-sm bg-white focus:ring-2 focus:ring-brand-500 outline-none font-bold">
                             ${VARIEDADES.map(v => `<option value="${v}" ${v === item.variedade ? 'selected' : ''}>${v}</option>`).join('')}
                         </select>
                     </div>
                     <div class="col-span-3">
-                        <label class="text-[10px] font-bold text-slate-400 uppercase block mb-0.5">Caixas</label>
-                        <input type="number" inputmode="numeric" min="1" required data-idx="${i}" data-field="caixas" value="${escapeHtml(item.caixas)}" placeholder="0" class="w-full p-2 border border-slate-300 rounded-lg text-sm bg-white focus:ring-2 focus:ring-brand-500 outline-none font-bold">
+                        <label class="text-[10px] font-bold text-slate-400 uppercase block mb-0.5">Qtde cx</label>
+                        <input type="number" inputmode="numeric" min="1" required data-idx="${i}" data-field="caixas" value="${escapeHtml(item.caixas)}" placeholder="0" class="w-full px-1.5 py-2 border border-slate-300 rounded-lg text-sm bg-white focus:ring-2 focus:ring-brand-500 outline-none font-bold">
+                    </div>
+                    <div class="col-span-3">
+                        <label class="text-[10px] font-bold text-slate-400 uppercase block mb-0.5">Média un/cx</label>
+                        <input type="number" inputmode="decimal" min="0.1" step="any" required data-idx="${i}" data-field="media" value="${escapeHtml(item.media)}" placeholder="0" class="w-full px-1.5 py-2 border border-slate-300 rounded-lg text-sm bg-white focus:ring-2 focus:ring-brand-500 outline-none font-bold">
                     </div>
                     <div class="col-span-1 flex justify-center pb-1.5">
                         <button type="button" onclick="removeCargaRow(${i})" class="p-1.5 rounded-lg text-red-500 hover:bg-red-50 active:scale-95 transition-all ${canRemove ? '' : 'invisible'}" title="Remover">
@@ -1433,7 +1467,7 @@
         }
 
         function addCargaRow() {
-            motoristaItens.push({ bloco: '', variedade: VARIEDADE_PADRAO, caixas: '' });
+            motoristaItens.push({ bloco: '', variedade: VARIEDADE_PADRAO, caixas: '', media: '' });
             renderCargaRows();
             updateMotoristaPreview();
             saveMotoristaState();
@@ -1481,175 +1515,98 @@
             return date.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
         }
 
-        function getMotoristaMinutos() {
-            const min = parseInt(document.getElementById('motoristaMinutos').value, 10);
-            return min > 0 ? min : null;
-        }
-
-        // Saída, tempo e chegada congelados no clique em "Enviar" (null = ainda não calculado)
-        let motoristaEnvio = null; // { saida: Date, minutos, chegada: Date }
-        let isCalculandoEnvio = false;
-
-        // Tempo de viagem atualizado automaticamente pelo GPS enquanto a aba Motorista está aberta
-        let motoristaGpsWatch = null;
-        let motoristaRotaAoVivo = null; // { minutos, km, fonte, em }
-
-        function iniciarGpsMotorista() {
-            if (motoristaGpsWatch !== null || !hasDestinoCoords()) return;
-            if (!navigator.geolocation) {
-                mostrarTempoManual();
-                return;
-            }
-            motoristaGpsWatch = navigator.geolocation.watchPosition((pos) => {
-                motoristaRotaAoVivo = { ...rotaOffline({ lat: pos.coords.latitude, lng: pos.coords.longitude }), em: Date.now() };
-                document.getElementById('motoristaManualWrap').classList.add('hidden');
-                updateMotoristaTempo();
-            }, (err) => {
-                console.warn('GPS:', err);
-                if (!motoristaRotaAoVivo) mostrarTempoManual();
-            }, { enableHighAccuracy: true, maximumAge: 30000, timeout: 60000 });
-        }
-
-        function pararGpsMotorista() {
-            if (motoristaGpsWatch === null) return;
-            navigator.geolocation.clearWatch(motoristaGpsWatch);
-            motoristaGpsWatch = null;
-        }
-
-        function mostrarTempoManual() {
-            document.getElementById('motoristaManualWrap').classList.remove('hidden');
-            updateMotoristaTempo();
-        }
-
-        function updateMotoristaTempo() {
-            const el = document.getElementById('motoristaTempo');
-            if (motoristaRotaAoVivo) {
-                el.innerText = `${motoristaRotaAoVivo.minutos} min`;
-            } else if (!document.getElementById('motoristaManualWrap').classList.contains('hidden')) {
-                el.innerText = 'Sem GPS';
-            } else {
-                el.innerText = 'Buscando GPS...';
-            }
-        }
-
-        // Calcula o tempo até o destino a partir da localização atual do motorista (funciona sem internet)
-        async function obterRotaAtual() {
-            if (!hasDestinoCoords()) throw new Error('Destino não configurado em DESTINO_MOTORISTA.');
-            if (!navigator.geolocation) throw new Error('Este aparelho não permite obter a localização.');
-
-            const pos = await obterPosicaoGps();
-            return rotaOffline({ lat: pos.coords.latitude, lng: pos.coords.longitude });
-        }
-
-        // Sem internet o GPS demora mais para fixar (sem A-GPS); se a leitura precisa falhar, usa a última posição conhecida
-        async function obterPosicaoGps() {
-            const getPos = (opts) => new Promise((resolve, reject) => navigator.geolocation.getCurrentPosition(resolve, reject, opts));
-            try {
-                return await getPos({ enableHighAccuracy: true, timeout: 30000, maximumAge: 120000 });
-            } catch (geoErr) {
-                if (geoErr.code === 1) throw new Error('Permita o acesso à localização no navegador.');
-                try {
-                    return await getPos({ enableHighAccuracy: false, timeout: 10000, maximumAge: 600000 });
-                } catch (e) {
-                    throw new Error('Não foi possível obter a localização. Verifique se o GPS está ligado.');
-                }
-            }
-        }
-
-        // Trajeto Fazenda Oásis -> SPG Indústria gravado no app ([lat, lng]), para calcular sem internet
-        const ROTA_PONTOS = [[-4.21388,-40.86667],[-4.21386,-40.86667],[-4.21202,-40.86627],[-4.21065,-40.86648],[-4.20957,-40.86661],[-4.2092,-40.867],[-4.20874,-40.86723],[-4.20441,-40.86613],[-4.20045,-40.86508],[-4.19836,-40.86451],[-4.19804,-40.86455],[-4.19763,-40.86474],[-4.19726,-40.8651],[-4.19627,-40.8662],[-4.19606,-40.86635],[-4.19576,-40.86647],[-4.19519,-40.8666],[-4.19362,-40.86684],[-4.18911,-40.8673],[-4.18854,-40.86742],[-4.18737,-40.86782],[-4.18714,-40.8678],[-4.18486,-40.86722],[-4.18217,-40.86645],[-4.18087,-40.86613],[-4.17865,-40.86547],[-4.17828,-40.86544],[-4.17767,-40.86526],[-4.17693,-40.86502],[-4.17588,-40.86472],[-4.1757,-40.86547],[-4.17556,-40.86621],[-4.1755,-40.8665],[-4.17542,-40.86689],[-4.17537,-40.86808],[-4.17538,-40.86885],[-4.17534,-40.86906],[-4.17521,-40.86946],[-4.17485,-40.87035],[-4.17468,-40.87081],[-4.17433,-40.87172],[-4.17409,-40.87238],[-4.17387,-40.87306],[-4.17369,-40.87425],[-4.1734,-40.87568],[-4.17323,-40.87618],[-4.17285,-40.87704],[-4.17272,-40.87733],[-4.17267,-40.87741],[-4.17263,-40.8775],[-4.1724,-40.87803],[-4.17234,-40.87827],[-4.1723,-40.87855],[-4.17218,-40.87956],[-4.1722,-40.8803],[-4.17209,-40.88071],[-4.17179,-40.88145],[-4.17069,-40.88383],[-4.17033,-40.88485],[-4.17004,-40.88598],[-4.16946,-40.88691],[-4.1693,-40.88712],[-4.16911,-40.88741],[-4.16898,-40.88763],[-4.16888,-40.88785],[-4.16879,-40.88808],[-4.16873,-40.88829],[-4.16871,-40.8885],[-4.16869,-40.88911],[-4.16865,-40.88934],[-4.16956,-40.88979],[-4.16967,-40.8898],[-4.16974,-40.88978],[-4.16979,-40.88967],[-4.1699,-40.88915],[-4.16994,-40.88909],[-4.17002,-40.88905],[-4.17009,-40.88904],[-4.17093,-40.88924],[-4.17104,-40.88924],[-4.17112,-40.88921],[-4.17116,-40.88914]];
-
-        // Velocidade na estrada calibrada pelo Google Maps (trajeto completo de ~7,7 km em 11 min)
-        const VELOCIDADE_ESTRADA_MPS = 7679 / 660;
-        // Velocidade estimada do ponto atual (ex: meio do campo) até a estrada, em linha reta
-        const VELOCIDADE_CAMPO_MPS = 15 / 3.6;
-
-        // Converte [lat, lng] em metros num plano local (precisão suficiente para alguns km)
-        function toMetros([lat, lng]) {
-            const R = 6371000;
-            return { x: lng * Math.PI / 180 * R * Math.cos(-4.19 * Math.PI / 180), y: lat * Math.PI / 180 * R };
-        }
-
-        // Projeta a posição no trajeto e soma: trecho em linha reta até a estrada + o que falta da estrada até o destino
-        function rotaOffline(origem) {
-            const p = toMetros([origem.lat, origem.lng]);
-            const pts = ROTA_PONTOS.map(toMetros);
-
-            // Comprimento restante a partir de cada ponto até o fim
-            const restante = new Array(pts.length).fill(0);
-            for (let i = pts.length - 2; i >= 0; i--) {
-                restante[i] = restante[i + 1] + Math.hypot(pts[i + 1].x - pts[i].x, pts[i + 1].y - pts[i].y);
-            }
-
-            let melhor = { dist: Infinity, falta: 0 };
-            for (let i = 0; i < pts.length - 1; i++) {
-                const a = pts[i], b = pts[i + 1];
-                const dx = b.x - a.x, dy = b.y - a.y;
-                const len2 = dx * dx + dy * dy;
-                const t = len2 ? Math.max(0, Math.min(1, ((p.x - a.x) * dx + (p.y - a.y) * dy) / len2)) : 0;
-                const qx = a.x + t * dx, qy = a.y + t * dy;
-                const dist = Math.hypot(p.x - qx, p.y - qy);
-                if (dist < melhor.dist) {
-                    melhor = { dist, falta: (1 - t) * Math.sqrt(len2) + restante[i + 1] };
-                }
-            }
-
-            const segundos = melhor.falta / VELOCIDADE_ESTRADA_MPS + melhor.dist / VELOCIDADE_CAMPO_MPS;
-            return { minutos: Math.max(1, Math.round(segundos / 60)), km: (melhor.falta + melhor.dist) / 1000, fonte: 'gps' };
+        // Chegada = horário de saída + tempo fixo do trajeto
+        function getChegadaDate() {
+            const saida = getSaidaDate();
+            return saida ? new Date(saida.getTime() + TEMPO_VIAGEM_MIN * 60000) : null;
         }
 
         function buildMotoristaMessage() {
             const nome = document.getElementById('motoristaNome').value.trim();
             const itens = motoristaItens.filter(i => i.bloco.trim() || i.caixas);
             const total = getTotalCaixas();
-            const pendente = 'calculado ao enviar';
 
             let text = `🚚 *CARGA A CAMINHO - SPG*\n\n`;
             text += `*Motorista:* ${nome || '---'}\n`;
-            text += `*Saída:* ${motoristaEnvio ? formatHora(motoristaEnvio.saida) : pendente}\n\n`;
+            const saidaData = getSaidaDate();
+            text += `*Saída:* ${saidaData ? formatHora(saidaData) : 'não informada'}\n`;
+            text += `*Carregamento:* ${document.getElementById('motoristaCarregamento').value}\n\n`;
 
-            text += `📦 *CAIXAS NA CARGA*\n`;
+            text += `📦 *Caixas*\n`;
             if (itens.length === 0) text += `---\n`;
             itens.forEach(i => {
                 const bloco = i.bloco.trim().replace(/^bloco\s*/i, '') || '?';
                 const caixas = parseInt(i.caixas, 10) || 0;
-                text += `• Bloco ${bloco} - ${i.variedade.trim() || '?'}: ${caixas} cx\n`;
+                const media = parseFloat(String(i.media ?? '').replace(',', '.'));
+                const mediaTxt = media > 0 ? ` (média ${media.toLocaleString('pt-BR', { maximumFractionDigits: 1 })} un/cx)` : '';
+                text += `• Bloco ${bloco} - ${i.variedade.trim() || '?'}: ${caixas} cx${mediaTxt}\n`;
             });
             text += `*Total:* ${total} ${total === 1 ? 'caixa' : 'caixas'}\n\n`;
 
-            text += `📍 *Destino:* ${DESTINO_MOTORISTA.nome}\n`;
-            if (motoristaEnvio && motoristaRota.km && motoristaRota.fonte !== 'manual') {
-                text += `*Distância:* ${motoristaRota.km.toLocaleString('pt-BR', { maximumFractionDigits: 1 })} km\n`;
+            if (isFinalizado()) {
+                text += `✅ *Carregamento finalizado*\n\n`;
+            } else {
+                const previsao = parseInt(document.getElementById('motoristaPrevisao').value, 10) || 0;
+                const previsaoTxt = previsao ? `${previsao} ${previsao === 1 ? 'caixa' : 'caixas'}` : 'não informada';
+                text += `🔜 *Previsão para a próxima viagem:* ${previsaoTxt}\n\n`;
             }
-            text += `*Tempo estimado:* ${motoristaEnvio ? `${motoristaEnvio.minutos} min` : pendente}\n`;
-            text += `⏰ *Chegada prevista:* ${motoristaEnvio ? formatHora(motoristaEnvio.chegada) : 'calculada ao enviar'}`;
+
+            text += `📍 *Destino:* ${DESTINO_MOTORISTA.nome}\n`;
+            text += `*Tempo estimado:* ${TEMPO_VIAGEM_MIN} min\n`;
+            const chegada = getChegadaDate();
+            text += `⏰ *Chegada prevista:* ${chegada ? formatHora(chegada) : '---'}`;
             return text;
         }
 
         function updateMotoristaPreview() {
-            document.getElementById('motoristaChegada').innerText = motoristaEnvio ? formatHora(motoristaEnvio.chegada) : 'Ao enviar';
+            const chegada = getChegadaDate();
+            document.getElementById('motoristaChegada').innerText = chegada ? formatHora(chegada) : '--:--';
             document.getElementById('cargaTotalBadge').innerText = getTotalCaixas();
-            updateMotoristaTempo();
-
-            const info = document.getElementById('motoristaRotaInfo');
-            if (motoristaEnvio && motoristaRota.fonte === 'manual') {
-                info.innerText = `GPS indisponível: usado o tempo manual de ${motoristaEnvio.minutos} min às ${formatHora(motoristaEnvio.saida)}.`;
-            } else if (motoristaEnvio) {
-                const km = motoristaRota.km ? `${motoristaRota.km.toLocaleString('pt-BR', { maximumFractionDigits: 1 })} km • ` : '';
-                info.innerText = `Último envio: calculado pelo GPS (sem internet) • ${km}${motoristaEnvio.minutos} min, calculado às ${formatHora(motoristaEnvio.saida)}.`;
-            } else {
-                info.innerText = MOTORISTA_INFO_PADRAO;
-            }
+            document.getElementById('motoristaRotaInfo').innerText = `Chegada = horário de saída + ${TEMPO_VIAGEM_MIN} min de viagem.`;
 
             // Prévia com negrito no estilo do WhatsApp
             document.getElementById('motoristaPreview').innerHTML = escapeHtml(buildMotoristaMessage()).replace(/\*([^*\n]+)\*/g, '<b>$1</b>');
         }
 
-        const MOTORISTA_INFO_PADRAO = 'O tempo de viagem é atualizado automaticamente pelo GPS (funciona sem internet). A chegada é fixada quando você toca em "Enviar".';
+        // Horário de saída informado manualmente (HH:MM de hoje)
+        function getSaidaDate() {
+            const val = document.getElementById('motoristaSaida').value;
+            if (!val) return null;
+            const [h, m] = val.split(':').map(Number);
+            const d = new Date();
+            d.setHours(h, m, 0, 0);
+            return d;
+        }
 
-        // Clique em "Enviar": calcula a rota pelo GPS agora e congela saída/chegada antes da confirmação
-        async function confirmMotoristaSend() {
-            if (isCalculandoEnvio) return;
+        function isFinalizado() {
+            return document.getElementById('motoristaFinalizado').value === 'sim';
+        }
+
+        // Finalizado: não há próxima viagem, então a previsão some e deixa de ser obrigatória
+        function aplicarFinalizado() {
+            const finalizado = isFinalizado();
+            document.getElementById('motoristaPrevisaoWrap').classList.toggle('hidden', finalizado);
+            document.getElementById('motoristaPrevisao').required = !finalizado;
+        }
+
+        function onFinalizadoChange() {
+            aplicarFinalizado();
+            updateMotoristaPreview();
+            saveMotoristaState();
+        }
+
+        function onSaidaChange() {
+            updateMotoristaPreview();
+            saveMotoristaState();
+        }
+
+        function setSaidaAgora() {
+            const now = new Date();
+            document.getElementById('motoristaSaida').value = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+            onSaidaChange();
+        }
+
+        function confirmMotoristaSend() {
             const form = document.getElementById('motoristaForm');
             if (!form.checkValidity()) {
                 form.reportValidity();
@@ -1660,42 +1617,9 @@
                 return;
             }
 
-            isCalculandoEnvio = true;
-            const btnSpan = document.querySelector('button[onclick="confirmBeforeSend()"] span.hidden.sm\\:inline') || document.querySelector('button[onclick="confirmBeforeSend()"] span');
-            const originalText = btnSpan.innerText;
-            btnSpan.innerText = 'Calculando rota...';
-
-            try {
-                let minutos;
-                try {
-                    // Usa a posição do GPS automático se for recente (até 2 min); senão faz uma leitura nova
-                    const aoVivoRecente = motoristaRotaAoVivo && Date.now() - motoristaRotaAoVivo.em < 120000;
-                    const rota = aoVivoRecente ? motoristaRotaAoVivo : await obterRotaAtual();
-                    motoristaRota = { km: rota.km, fonte: rota.fonte, calculadoEm: Date.now() };
-                    minutos = rota.minutos;
-                } catch (rotaErr) {
-                    console.warn('Falha no cálculo da rota:', rotaErr);
-                    minutos = getMotoristaMinutos();
-                    if (!minutos) {
-                        mostrarTempoManual();
-                        showMessageModal('Falha no cálculo', `${rotaErr.message} Preencha o tempo manual e toque em Enviar novamente.`, 'error');
-                        return;
-                    }
-                    motoristaRota = { km: null, fonte: 'manual', calculadoEm: Date.now() };
-                }
-
-                const saida = new Date();
-                motoristaEnvio = { saida, minutos, chegada: new Date(saida.getTime() + minutos * 60000) };
-                saveMotoristaState();
-                updateMotoristaPreview();
-
-                document.getElementById('confirmModalText').innerText = `Chegada prevista às ${formatHora(motoristaEnvio.chegada)} (${minutos} min) com ${getTotalCaixas()} caixas. Confira os dados antes de enviar.`;
-                document.getElementById('confirmModal').classList.remove('hidden');
-                lucide.createIcons();
-            } finally {
-                btnSpan.innerText = originalText;
-                isCalculandoEnvio = false;
-            }
+            document.getElementById('confirmModalText').innerText = `Chegada prevista às ${formatHora(getChegadaDate())} (${TEMPO_VIAGEM_MIN} min) com ${getTotalCaixas()} caixas. Confira os dados antes de enviar.`;
+            document.getElementById('confirmModal').classList.remove('hidden');
+            lucide.createIcons();
         }
 
         async function sendMotorista() {
@@ -1715,12 +1639,14 @@
             window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(text)}`, '_blank');
         }
 
-        // Limpa a carga e a rota; mantém o motorista para o próximo envio
+        // Limpa a carga; mantém o motorista para o próximo envio
         function clearMotorista() {
-            motoristaItens = [{ bloco: '', variedade: VARIEDADE_PADRAO, caixas: '' }];
-            motoristaRota = { km: null, fonte: null, calculadoEm: null };
-            motoristaEnvio = null;
-            document.getElementById('motoristaMinutos').value = '';
+            motoristaItens = [{ bloco: '', variedade: VARIEDADE_PADRAO, caixas: '', media: '' }];
+            document.getElementById('motoristaSaida').value = '';
+            document.getElementById('motoristaCarregamento').value = '1º';
+            document.getElementById('motoristaFinalizado').value = 'nao';
+            document.getElementById('motoristaPrevisao').value = '';
+            aplicarFinalizado();
             renderCargaRows();
             updateMotoristaPreview();
             saveMotoristaState();
