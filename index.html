@@ -342,19 +342,32 @@
         <div class="w-full lg:w-1/2 space-y-4">
             <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
                 <h2 class="text-lg font-bold text-slate-800 flex items-center gap-2 mb-4 border-b border-slate-100 pb-3">
-                    <i data-lucide="truck" class="text-brand-500"></i> <span>Carga a Caminho</span>
+                    <i data-lucide="truck" class="text-brand-500"></i> <span>Colheita a Caminho</span>
                 </h2>
 
                 <form id="motoristaForm" class="space-y-4" onsubmit="return false">
                     <div>
                         <label class="text-xs font-bold text-slate-500 uppercase mb-1 block">Motorista</label>
-                        <select id="motoristaNome" required onchange="updateMotoristaPreview()" class="w-full p-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand-500 outline-none text-sm bg-white font-bold">
+                        <select id="motoristaNome" required onchange="onNomeSelectChange('motoristaNome')" class="w-full p-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand-500 outline-none text-sm bg-white font-bold">
                             <option value="">Selecione...</option>
                             <option value="Mateus Paulo" selected>Mateus Paulo</option>
                             <option value="Pedro">Pedro</option>
                             <option value="Guilherme">Guilherme</option>
                             <option value="Clébio">Clébio</option>
+                            <option value="__outro__">Outro</option>
                         </select>
+                        <input type="text" id="motoristaNomeOutro" oninput="updateMotoristaPreview()" placeholder="Digite o nome do motorista" class="hidden w-full mt-2 p-2 border border-slate-300 rounded-lg text-sm bg-white focus:ring-2 focus:ring-brand-500 outline-none font-bold">
+                    </div>
+
+                    <div>
+                        <label class="text-xs font-bold text-slate-500 uppercase mb-1 block">Responsável Técnico</label>
+                        <select id="responsavelNome" required onchange="onNomeSelectChange('responsavelNome')" class="w-full p-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand-500 outline-none text-sm bg-white font-bold">
+                            <option value="" selected>Selecione...</option>
+                            <option value="Jucivan Xavier">Jucivan Xavier</option>
+                            <option value="Lucas Soares">Lucas Soares</option>
+                            <option value="__outro__">Outro</option>
+                        </select>
+                        <input type="text" id="responsavelNomeOutro" oninput="updateMotoristaPreview()" placeholder="Digite o nome do Responsável Técnico" class="hidden w-full mt-2 p-2 border border-slate-300 rounded-lg text-sm bg-white focus:ring-2 focus:ring-brand-500 outline-none font-bold">
                     </div>
 
                     <div>
@@ -368,21 +381,21 @@
                     <div class="grid grid-cols-2 gap-4">
                         <div>
                             <label class="text-xs font-bold text-slate-500 uppercase mb-1 block">Carregamento</label>
-                            <select id="motoristaCarregamento" required onchange="updateMotoristaPreview()" class="w-full p-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand-500 outline-none text-sm bg-white font-bold">
-                                <option value="1º" selected>1º carregamento</option>
-                                <option value="2º">2º carregamento</option>
-                                <option value="3º">3º carregamento</option>
-                                <option value="4º">4º carregamento</option>
-                                <option value="5º">5º carregamento</option>
-                                <option value="6º">6º carregamento</option>
-                                <option value="7º">7º carregamento</option>
-                                <option value="8º">8º carregamento</option>
-                                <option value="9º">9º carregamento</option>
-                                <option value="10º">10º carregamento</option>
+                            <select id="motoristaCarregamento" required onchange="onCarregamentoChange()" class="w-full p-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand-500 outline-none text-sm bg-white font-bold">
+                                <option value="1º" selected>Primeiro Carregamento</option>
+                                <option value="2º">Segundo Carregamento</option>
+                                <option value="3º">Terceiro Carregamento</option>
+                                <option value="4º">Quarto Carregamento</option>
+                                <option value="5º">Quinto Carregamento</option>
+                                <option value="6º">Sexto Carregamento</option>
+                                <option value="7º">Sétimo Carregamento</option>
+                                <option value="8º">Oitavo Carregamento</option>
+                                <option value="9º">Nono Carregamento</option>
+                                <option value="10º">Décimo Carregamento</option>
                             </select>
                         </div>
                         <div>
-                            <label class="text-xs font-bold text-slate-500 uppercase mb-1 block">Finalizado?</label>
+                            <label class="text-xs font-bold text-slate-500 uppercase mb-1 block">Colheita finalizada?</label>
                             <select id="motoristaFinalizado" onchange="onFinalizadoChange()" class="w-full p-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand-500 outline-none text-sm bg-white font-bold">
                                 <option value="nao" selected>Não</option>
                                 <option value="sim">Sim</option>
@@ -391,7 +404,7 @@
                     </div>
 
                     <div id="motoristaPrevisaoWrap">
-                        <label class="text-xs font-bold text-slate-500 uppercase mb-1 block">Previsão de caixas para a próxima viagem</label>
+                        <label class="text-xs font-bold text-slate-500 uppercase mb-1 block">Caixas previstas na próxima viagem</label>
                         <input type="number" inputmode="numeric" min="1" id="motoristaPrevisao" required oninput="updateMotoristaPreview()" placeholder="Ex: 40" class="w-full p-2 border border-slate-300 rounded-lg text-sm bg-white focus:ring-2 focus:ring-brand-500 outline-none font-bold">
                     </div>
 
@@ -1377,6 +1390,8 @@
         const TEMPO_VIAGEM_MIN = 11;
 
         let motoristaItens = []; // [{ bloco, variedade, caixas }]
+        let itensPorCarregamento = {}; // { '1º': [...], '2º': [...] } — blocos guardados de cada carregamento
+        let carregamentoAtual = '1º';
 
         function initMotorista() {
             document.getElementById('destinoNomeLabel').innerText = DESTINO_MOTORISTA.nome;
@@ -1388,16 +1403,24 @@
             try { saved = JSON.parse(sessionStorage.getItem('spgMotoristaState')); } catch (e) {}
             if (saved) {
                 motoristaItens = saved.itens || [];
+                itensPorCarregamento = saved.itensPorCarregamento || {};
                 document.getElementById('motoristaNome').value = saved.nome || MOTORISTA_PADRAO;
+                document.getElementById('motoristaNomeOutro').value = saved.nomeOutro || '';
+                document.getElementById('responsavelNome').value = saved.responsavel || '';
+                document.getElementById('responsavelNomeOutro').value = saved.responsavelOutro || '';
                 document.getElementById('motoristaSaida').value = saved.saida || '';
                 document.getElementById('motoristaCarregamento').value = saved.carregamento || '1º';
                 document.getElementById('motoristaFinalizado').value = saved.finalizado || 'nao';
                 document.getElementById('motoristaPrevisao').value = saved.previsao || '';
             } else {
                 try {
-                    document.getElementById('motoristaNome').value = localStorage.getItem('spgMotoristaNome') || MOTORISTA_PADRAO;
+                    setNomeSelect('motoristaNome', localStorage.getItem('spgMotoristaNome') || MOTORISTA_PADRAO);
+                    setNomeSelect('responsavelNome', localStorage.getItem('spgResponsavelNome'));
                 } catch (e) {}
             }
+            aplicarNomeOutro('motoristaNome');
+            aplicarNomeOutro('responsavelNome');
+            carregamentoAtual = document.getElementById('motoristaCarregamento').value;
             // Itens salvos com variedade fora da lista voltam para o padrão
             motoristaItens.forEach(i => { if (!VARIEDADES.includes(i.variedade)) i.variedade = VARIEDADE_PADRAO; });
             if (motoristaItens.length === 0) motoristaItens.push({ bloco: '', variedade: VARIEDADE_PADRAO, caixas: '', media: '' });
@@ -1418,17 +1441,47 @@
             updateMotoristaPreview();
         }
 
+        // Ao trocar de carregamento, guarda os blocos do atual e abre o novo com os blocos dele (ou vazio)
+        function onCarregamentoChange() {
+            itensPorCarregamento[carregamentoAtual] = motoristaItens;
+            carregamentoAtual = document.getElementById('motoristaCarregamento').value;
+            motoristaItens = itensPorCarregamento[carregamentoAtual] || [{ bloco: '', variedade: VARIEDADE_PADRAO, caixas: '', media: '' }];
+            // Novo carregamento é outra saída: zera o horário
+            document.getElementById('motoristaSaida').value = '';
+            renderCargaRows();
+            updateMotoristaPreview();
+            saveMotoristaState();
+        }
+
         function saveMotoristaState() {
+            itensPorCarregamento[carregamentoAtual] = motoristaItens;
             const state = {
                 nome: document.getElementById('motoristaNome').value,
+                nomeOutro: document.getElementById('motoristaNomeOutro').value,
+                responsavel: document.getElementById('responsavelNome').value,
+                responsavelOutro: document.getElementById('responsavelNomeOutro').value,
                 saida: document.getElementById('motoristaSaida').value,
                 carregamento: document.getElementById('motoristaCarregamento').value,
                 finalizado: document.getElementById('motoristaFinalizado').value,
                 previsao: document.getElementById('motoristaPrevisao').value,
-                itens: motoristaItens
+                itens: motoristaItens,
+                itensPorCarregamento
             };
             try { sessionStorage.setItem('spgMotoristaState', JSON.stringify(state)); } catch (e) {}
         }
+
+        // Campos de número não aceitam letras: inputmode="numeric" só dígitos; "decimal" dígitos, vírgula e ponto
+        const NUMERO_INVALIDO = { numeric: /\D/, decimal: /[^\d.,]/ };
+        document.addEventListener('beforeinput', (e) => {
+            const regra = e.target.tagName === 'INPUT' && NUMERO_INVALIDO[e.target.inputMode];
+            if (regra && e.data && regra.test(e.data)) e.preventDefault();
+        });
+        // Garantia para texto colado/autocompletado em campos de texto (number já descarta o inválido)
+        document.addEventListener('input', (e) => {
+            const regra = e.target.closest?.('#motoristaForm') && e.target.type === 'text' && NUMERO_INVALIDO[e.target.inputMode];
+            if (!regra || !regra.test(e.target.value)) return;
+            e.target.value = e.target.value.replace(new RegExp(regra.source, 'g'), '');
+        }, true);
 
         function escapeHtml(str) {
             return String(str ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -1440,7 +1493,7 @@
                 <div class="grid grid-cols-12 gap-2 items-end bg-slate-50 p-2 rounded-xl border border-slate-200 animate-fade-in-down">
                     <div class="col-span-2">
                         <label class="text-[10px] font-bold text-slate-400 uppercase block mb-0.5">Bloco</label>
-                        <input type="text" list="blocoSugestoes" required data-idx="${i}" data-field="bloco" value="${escapeHtml(item.bloco)}" placeholder="5" class="w-full px-1.5 py-2 border border-slate-300 rounded-lg text-sm bg-white focus:ring-2 focus:ring-brand-500 outline-none font-bold">
+                        <input type="text" inputmode="numeric" list="blocoSugestoes" required data-idx="${i}" data-field="bloco" value="${escapeHtml(item.bloco)}" placeholder="5" class="w-full px-1.5 py-2 border border-slate-300 rounded-lg text-sm bg-white focus:ring-2 focus:ring-brand-500 outline-none font-bold">
                     </div>
                     <div class="col-span-3">
                         <label class="text-[10px] font-bold text-slate-400 uppercase block mb-0.5">Variedade</label>
@@ -1502,9 +1555,41 @@
             sug.blocos = merge(sug.blocos, motoristaItens.map(i => i.bloco.trim()).filter(Boolean));
             try {
                 localStorage.setItem('spgMotoristaSugestoes', JSON.stringify(sug));
-                localStorage.setItem('spgMotoristaNome', document.getElementById('motoristaNome').value.trim());
+                localStorage.setItem('spgMotoristaNome', getNomeSelect('motoristaNome'));
+                localStorage.setItem('spgResponsavelNome', getNomeSelect('responsavelNome'));
             } catch (e) {}
             renderMotoristaSugestoes();
+        }
+
+        // Listas de nomes com opção "Outro" (motorista e responsável técnico); o campo livre é o id + "Outro"
+        // Nome escolhido: o da lista ou o digitado em "Outro"
+        function getNomeSelect(id) {
+            const val = document.getElementById(id).value;
+            return (val === '__outro__' ? document.getElementById(id + 'Outro').value : val).trim();
+        }
+
+        // Seleciona o nome na lista; se não estiver registrado, usa "Outro" com o nome digitado
+        function setNomeSelect(id, nome) {
+            if (!nome) return;
+            const select = document.getElementById(id);
+            const naLista = [...select.options].some(o => o.value === nome && o.value !== '__outro__');
+            select.value = naLista ? nome : '__outro__';
+            document.getElementById(id + 'Outro').value = naLista ? '' : nome;
+        }
+
+        // Mostra o campo de nome livre só quando "Outro" está selecionado
+        function aplicarNomeOutro(id) {
+            const outro = document.getElementById(id).value === '__outro__';
+            const input = document.getElementById(id + 'Outro');
+            input.classList.toggle('hidden', !outro);
+            input.required = outro;
+            return outro;
+        }
+
+        function onNomeSelectChange(id) {
+            if (aplicarNomeOutro(id)) document.getElementById(id + 'Outro').focus();
+            updateMotoristaPreview();
+            saveMotoristaState();
         }
 
         function getTotalCaixas() {
@@ -1522,40 +1607,67 @@
         }
 
         function buildMotoristaMessage() {
-            const nome = document.getElementById('motoristaNome').value.trim();
+            const nome = getNomeSelect('motoristaNome');
+            const responsavel = getNomeSelect('responsavelNome');
             const itens = motoristaItens.filter(i => i.bloco.trim() || i.caixas);
             const total = getTotalCaixas();
 
-            let text = `🚚 *CARGA A CAMINHO - SPG*\n\n`;
+            let text = `*COLHEITA A CAMINHO - SPG*\n\n`;
             text += `*Motorista:* ${nome || '---'}\n`;
+            text += `*Responsável Técnico:* ${responsavel || '---'}\n`;
             const saidaData = getSaidaDate();
-            text += `*Saída:* ${saidaData ? formatHora(saidaData) : 'não informada'}\n`;
-            text += `*Carregamento:* ${document.getElementById('motoristaCarregamento').value}\n\n`;
+            const chegada = getChegadaDate();
+            text += `*Horário Saída:* ${saidaData ? formatHora(saidaData) : '--:--'}  *Previsão Chegada:* ${chegada ? formatHora(chegada) : '--:--'} (${TEMPO_VIAGEM_MIN} min)\n`;
+            const carregamento = document.getElementById('motoristaCarregamento');
+            text += `*${carregamento.options[carregamento.selectedIndex].text}*\n\n`;
 
-            text += `📦 *Caixas*\n`;
+            text += `*Caixas*\n`;
             if (itens.length === 0) text += `---\n`;
+            const formatNum = n => Math.round(n).toLocaleString('pt-BR');
+            let totalUnidades = 0;
             itens.forEach(i => {
                 const bloco = i.bloco.trim().replace(/^bloco\s*/i, '') || '?';
                 const caixas = parseInt(i.caixas, 10) || 0;
                 const media = parseFloat(String(i.media ?? '').replace(',', '.'));
-                const mediaTxt = media > 0 ? ` (média ${media.toLocaleString('pt-BR', { maximumFractionDigits: 1 })} un/cx)` : '';
+                let mediaTxt = '';
+                if (media > 0) {
+                    // Unidades = caixas x média (ex: 90 cx x 21 un/cx = 1.890 un)
+                    const unidades = caixas * media;
+                    totalUnidades += unidades;
+                    mediaTxt = ` (média ${media.toLocaleString('pt-BR', { maximumFractionDigits: 1 })} un/cx) = ${formatNum(unidades)} un`;
+                }
                 text += `• Bloco ${bloco} - ${i.variedade.trim() || '?'}: ${caixas} cx${mediaTxt}\n`;
             });
-            text += `*Total:* ${total} ${total === 1 ? 'caixa' : 'caixas'}\n\n`;
+            text += `*Total:* ${total} ${total === 1 ? 'caixa' : 'caixas'}`;
+            if (totalUnidades > 0) text += ` = ${formatNum(totalUnidades)} unidades`;
+            text += `\n\n`;
 
             if (isFinalizado()) {
-                text += `✅ *Carregamento finalizado*\n\n`;
+                text += `*Colheita Finalizada*\n`;
+                // Resumo do dia: soma de todos os carregamentos guardados (incluindo o atual)
+                const todos = { ...itensPorCarregamento, [carregamentoAtual]: motoristaItens };
+                let diaCaixas = 0, diaUnidades = 0, diaViagens = 0;
+                Object.values(todos).forEach(lista => {
+                    let caixasCarregamento = 0;
+                    lista.forEach(i => {
+                        const caixas = parseInt(i.caixas, 10) || 0;
+                        const media = parseFloat(String(i.media ?? '').replace(',', '.'));
+                        caixasCarregamento += caixas;
+                        if (media > 0) diaUnidades += caixas * media;
+                    });
+                    diaCaixas += caixasCarregamento;
+                    if (caixasCarregamento > 0) diaViagens++;
+                });
+                text += `*Total de Caixas do Dia:* ${formatNum(diaCaixas)} ${diaCaixas === 1 ? 'caixa' : 'caixas'}\n`;
+                if (diaUnidades > 0) text += `*Total de Unidades:* ${formatNum(diaUnidades)} unidades\n`;
+                text += `*Total de Viagens:* ${diaViagens} ${diaViagens === 1 ? 'viagem' : 'viagens'}\n\n`;
             } else {
                 const previsao = parseInt(document.getElementById('motoristaPrevisao').value, 10) || 0;
                 const previsaoTxt = previsao ? `${previsao} ${previsao === 1 ? 'caixa' : 'caixas'}` : 'não informada';
-                text += `🔜 *Previsão para a próxima viagem:* ${previsaoTxt}\n\n`;
+                text += `*Caixas Previstas na Próxima Viagem:* ${previsaoTxt}\n\n`;
             }
 
-            text += `📍 *Destino:* ${DESTINO_MOTORISTA.nome}\n`;
-            text += `*Tempo estimado:* ${TEMPO_VIAGEM_MIN} min\n`;
-            const chegada = getChegadaDate();
-            text += `⏰ *Chegada prevista:* ${chegada ? formatHora(chegada) : '---'}`;
-            return text;
+            return text.trimEnd();
         }
 
         function updateMotoristaPreview() {
@@ -1607,6 +1719,9 @@
         }
 
         function confirmMotoristaSend() {
+            // Sem horário marcado: considera que saiu agora
+            if (!document.getElementById('motoristaSaida').value) setSaidaAgora();
+
             const form = document.getElementById('motoristaForm');
             if (!form.checkValidity()) {
                 form.reportValidity();
@@ -1642,6 +1757,8 @@
         // Limpa a carga; mantém o motorista para o próximo envio
         function clearMotorista() {
             motoristaItens = [{ bloco: '', variedade: VARIEDADE_PADRAO, caixas: '', media: '' }];
+            itensPorCarregamento = {};
+            carregamentoAtual = '1º';
             document.getElementById('motoristaSaida').value = '';
             document.getElementById('motoristaCarregamento').value = '1º';
             document.getElementById('motoristaFinalizado').value = 'nao';
