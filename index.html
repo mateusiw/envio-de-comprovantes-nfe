@@ -76,20 +76,25 @@
         </div>
     </div>
 
-    <div class="container mx-auto p-4 flex flex-col lg:flex-row gap-8 mt-4">
-        
+    <!-- SELETOR DE MODO -->
+    <div class="container mx-auto px-4 mt-4">
+        <div class="w-full lg:w-1/2 bg-slate-200/70 p-1.5 rounded-xl flex gap-1 shadow-inner">
+            <button type="button" id="btnModeMotorista" onclick="setMode('motorista')" class="flex-1 py-2.5 px-2 text-sm font-bold rounded-lg text-slate-500 hover:text-slate-700 hover:bg-slate-300/50 transition-all">
+                🚚 Motorista
+            </button>
+            <button type="button" id="btnModeCompra" onclick="setMode('compra')" class="flex-1 py-2.5 px-2 text-sm font-black rounded-lg bg-white shadow-sm text-brand-600 transition-all border border-slate-200/50">
+                💳 Compras
+            </button>
+            <button type="button" id="btnModeNF" onclick="setMode('nf')" class="flex-1 py-2.5 px-2 text-sm font-bold rounded-lg text-slate-500 hover:text-slate-700 hover:bg-slate-300/50 transition-all">
+                📄 Notas Fiscais
+            </button>
+        </div>
+    </div>
+
+    <div id="financeView" class="container mx-auto p-4 flex flex-col lg:flex-row gap-8">
+
         <!-- COLUNA DA ESQUERDA: FORMULÁRIO -->
         <div class="w-full lg:w-1/2 space-y-4">
-
-            <!-- SELETOR DE MODO -->
-            <div class="bg-slate-200/70 p-1.5 rounded-xl flex gap-1 shadow-inner">
-                <button type="button" id="btnModeCompra" onclick="setMode('compra')" class="flex-1 py-2.5 px-4 text-sm font-black rounded-lg bg-white shadow-sm text-brand-600 transition-all border border-slate-200/50">
-                    💳 Compras
-                </button>
-                <button type="button" id="btnModeNF" onclick="setMode('nf')" class="flex-1 py-2.5 px-4 text-sm font-bold rounded-lg text-slate-500 hover:text-slate-700 hover:bg-slate-300/50 transition-all">
-                    📄 Notas Fiscais
-                </button>
-            </div>
 
             <!-- DADOS DO REGISTRO -->
             <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
@@ -330,6 +335,75 @@
         </div>
     </div>
 
+    <!-- ABA MOTORISTA -->
+    <div id="motoristaView" class="container mx-auto p-4 flex-col lg:flex-row gap-8 hidden">
+
+        <!-- COLUNA DA ESQUERDA: FORMULÁRIO DO MOTORISTA -->
+        <div class="w-full lg:w-1/2 space-y-4">
+            <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
+                <h2 class="text-lg font-bold text-slate-800 flex items-center gap-2 mb-4 border-b border-slate-100 pb-3">
+                    <i data-lucide="truck" class="text-brand-500"></i> <span>Carga a Caminho</span>
+                </h2>
+
+                <form id="motoristaForm" class="space-y-4" onsubmit="return false">
+                    <div>
+                        <label class="text-xs font-bold text-slate-500 uppercase mb-1 block">Motorista</label>
+                        <select id="motoristaNome" required onchange="updateMotoristaPreview()" class="w-full p-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand-500 outline-none text-sm bg-white font-bold">
+                            <option value="">Selecione...</option>
+                            <option value="Mateus Paulo" selected>Mateus Paulo</option>
+                            <option value="Pedro">Pedro</option>
+                            <option value="Guilherme">Guilherme</option>
+                            <option value="Clébio">Clébio</option>
+                        </select>
+                    </div>
+
+                    <!-- Itens da carga -->
+                    <div class="pt-2">
+                        <div class="flex items-center justify-between mb-2">
+                            <label class="text-xs font-bold text-slate-500 uppercase flex items-center gap-1"><i data-lucide="package" class="w-3 h-3"></i> Caixas por Bloco / Variedade</label>
+                            <span class="text-[10px] text-brand-600 font-bold bg-brand-50 px-2 py-0.5 rounded-full">Total: <span id="cargaTotalBadge">0</span> cx</span>
+                        </div>
+                        <div id="cargaRows" class="space-y-2"></div>
+                        <datalist id="blocoSugestoes"></datalist>
+                        <button type="button" onclick="addCargaRow()" class="mt-2 w-full flex items-center justify-center gap-2 py-2.5 px-3 border border-dashed border-brand-300 rounded-lg text-sm font-semibold text-brand-700 bg-brand-50 hover:bg-brand-100 active:scale-95 transition-all">
+                            <i data-lucide="plus" class="w-4 h-4"></i>
+                            <span>Adicionar bloco</span>
+                        </button>
+                    </div>
+
+                    <!-- Rota -->
+                    <div class="pt-4 border-t border-slate-100 space-y-3">
+                        <div>
+                            <p class="text-xs font-bold text-slate-500 uppercase">Destino</p>
+                            <p class="text-sm font-black text-slate-800" id="destinoNomeLabel">---</p>
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label class="text-xs font-bold text-slate-500 uppercase mb-1 block">Tempo manual (min)</label>
+                                <input type="number" inputmode="numeric" min="1" id="motoristaMinutos" placeholder="Só se o GPS falhar" class="w-full p-2 border border-slate-300 rounded-lg text-sm bg-white focus:ring-2 focus:ring-brand-500 outline-none font-bold">
+                            </div>
+                            <div>
+                                <p class="text-xs font-bold text-slate-500 uppercase mb-1">Chegada prevista</p>
+                                <p class="p-2 text-lg font-black text-brand-700 leading-tight" id="motoristaChegada">Ao enviar</p>
+                            </div>
+                        </div>
+                        <p id="motoristaRotaInfo" class="text-[11px] text-slate-500 font-medium leading-relaxed"></p>
+                        <a id="motoristaWazeLink" href="#" target="_blank" rel="noopener" class="inline-flex items-center gap-1 text-xs font-bold text-sky-600 hover:underline">
+                            <i data-lucide="external-link" class="w-3 h-3"></i> Abrir rota no Waze
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- COLUNA DA DIREITA: PRÉVIA DA MENSAGEM -->
+        <div class="w-full lg:w-1/2 flex flex-col bg-slate-200/50 p-4 rounded-3xl border border-slate-300/50 h-max">
+            <p class="text-[10px] text-slate-500 font-bold uppercase tracking-wider mb-2 flex items-center gap-1"><i data-lucide="message-circle" class="w-3 h-3"></i> Prévia da mensagem do WhatsApp</p>
+            <div class="bg-[#dcf8c6] text-slate-800 rounded-2xl rounded-tr-none p-4 shadow-sm text-sm leading-relaxed whitespace-pre-wrap break-words select-text" id="motoristaPreview"></div>
+        </div>
+    </div>
+
     <!-- MODAL DE CONFIRMAÇÃO DE ENVIO -->
     <div id="confirmModal" class="fixed inset-0 bg-black/60 z-[60] hidden flex justify-center items-center backdrop-blur-sm transition-opacity duration-300">
         <div class="bg-white rounded-2xl shadow-2xl p-6 w-11/12 max-w-md transform transition-all scale-100">
@@ -338,7 +412,7 @@
             </div>
             <h3 class="text-xl font-black text-slate-800 text-center">Confirmar Envio?</h3>
             <p class="text-sm text-slate-500 mt-3 text-center leading-relaxed font-medium">
-                Verifique se os dados e as fotos anexadas estão corretos.<br><br>
+                <span id="confirmModalText">Verifique se os dados e as fotos anexadas estão corretos.</span><br><br>
                 <span class="text-brand-600 font-bold">As informações serão direcionadas para o WhatsApp.</span>
             </p>
             <div class="grid grid-cols-2 gap-3 mt-6">
@@ -385,9 +459,13 @@
     </div>
 
     <script>
+        // URL configurada do Apps Script (envio para a planilha)
+        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzOT5nv3C9ILZZM1VzRHkFKRvTFv5ngbIds57IbsXXoyFQeev-GZFT9Glu2Zlwd8kMA/exec";
+
         // Novo estado unificado separando imagens por aba
         let photosData = { compra: [], nf: [] };
-        let currentMode = 'compra'; // Modos: 'compra' ou 'nf'
+        let currentMode = 'compra'; // Modos: 'compra', 'nf' ou 'motorista'
+        let lastFinanceMode = 'compra'; // Última aba de formulário financeiro (compra/nf)
 
         const optionsCompra = `
             <option value="">Selecione...</option>
@@ -429,6 +507,7 @@
         function saveState() {
             const state = {
                 mode: currentMode,
+                lastFinanceMode: lastFinanceMode,
                 photos: photosData,
                 form: {
                     purchaseDate: document.getElementById('purchaseDate').value,
@@ -498,6 +577,11 @@
         }
 
         // Inicialização
+        // Guarda o app no aparelho para abrir sem internet (só funciona servido por http/https)
+        if ('serviceWorker' in navigator && location.protocol.startsWith('http')) {
+            navigator.serviceWorker.register('sw.js').catch(err => console.warn('Service worker não registrado:', err));
+        }
+
         document.addEventListener("DOMContentLoaded", () => {
             applyBrandAssets();
             lucide.createIcons();
@@ -512,9 +596,14 @@
             if (state && state.mode) {
                 currentMode = state.mode;
             }
+            if (state && state.lastFinanceMode) {
+                lastFinanceMode = state.lastFinanceMode;
+            } else if (currentMode !== 'motorista') {
+                lastFinanceMode = currentMode;
+            }
 
             // 2. Aplicar options do select logo de cara (para não apagar na restauração)
-            const isNF = currentMode === 'nf';
+            const isNF = lastFinanceMode === 'nf';
             document.getElementById('establishmentSelect').innerHTML = isNF ? optionsNF : optionsCompra;
 
             // 3. Preencher formulários salvos
@@ -539,6 +628,7 @@
             }
 
             // 5. Configura e reflete a interface final (isRestoring = true evita limpar select)
+            if (currentMode === 'motorista') setMode(lastFinanceMode, true);
             setMode(currentMode, true);
             
             handleEstablishmentChange();
@@ -551,17 +641,42 @@
             // 6. Ativar listeners para o Auto-save agir a qualquer mudança
             document.getElementById('receiptForm').addEventListener('input', saveState);
             document.getElementById('receiptForm').addEventListener('change', saveState);
+
+            initMotorista();
         });
 
         // Alternador de Modos
+        const MODE_BTN_ACTIVE = "flex-1 py-2.5 px-2 text-sm font-black rounded-lg bg-white shadow-sm text-brand-600 transition-all border border-slate-200/50";
+        const MODE_BTN_INACTIVE = "flex-1 py-2.5 px-2 text-sm font-bold rounded-lg text-slate-500 hover:text-slate-700 hover:bg-slate-300/50 transition-all";
+
         function setMode(mode, isRestoring = false) {
             currentMode = mode;
             const isNF = mode === 'nf';
-            
+            const isMotorista = mode === 'motorista';
+
             // UI dos Botões Superiores
+            document.getElementById('btnModeCompra').className = mode === 'compra' ? MODE_BTN_ACTIVE : MODE_BTN_INACTIVE;
+            document.getElementById('btnModeNF').className = isNF ? MODE_BTN_ACTIVE : MODE_BTN_INACTIVE;
+            document.getElementById('btnModeMotorista').className = isMotorista ? MODE_BTN_ACTIVE : MODE_BTN_INACTIVE;
+
+            // Alterna entre a tela financeira e a tela do motorista
+            document.getElementById('financeView').classList.toggle('hidden', isMotorista);
+            document.getElementById('financeView').classList.toggle('flex', !isMotorista);
+            document.getElementById('motoristaView').classList.toggle('hidden', !isMotorista);
+            document.getElementById('motoristaView').classList.toggle('flex', isMotorista);
+
+            if (isMotorista) {
+                lucide.createIcons();
+                updateMotoristaPreview();
+                if (!isRestoring) saveState();
+                return;
+            }
+
+            // Só troca a lista de estabelecimentos se o tipo de formulário mudou (ida e volta pela aba Motorista mantém os dados)
+            const listChanged = mode !== lastFinanceMode;
+            lastFinanceMode = mode;
+
             if (isNF) {
-                document.getElementById('btnModeNF').className = "flex-1 py-2.5 px-4 text-sm font-black rounded-lg bg-white shadow-sm text-brand-600 transition-all border border-slate-200/50";
-                document.getElementById('btnModeCompra').className = "flex-1 py-2.5 px-4 text-sm font-bold rounded-lg text-slate-500 hover:text-slate-700 hover:bg-slate-300/50 transition-all";
                 
                 // Alterando Títulos e Ícones do Formulário
                 document.getElementById('formIcon').setAttribute('data-lucide', 'file-check');
@@ -593,15 +708,12 @@
                 document.getElementById('userContainer').classList.add('sm:col-span-2');
 
                 // Mudar lista para Clientes de NF (somente se não estiver restaurando)
-                if (!isRestoring) {
+                if (!isRestoring && listChanged) {
                     document.getElementById('establishmentSelect').innerHTML = optionsNF;
                     document.getElementById('establishmentSelect').value = "";
                     handleEstablishmentChange();
                 }
             } else {
-                document.getElementById('btnModeCompra').className = "flex-1 py-2.5 px-4 text-sm font-black rounded-lg bg-white shadow-sm text-brand-600 transition-all border border-slate-200/50";
-                document.getElementById('btnModeNF').className = "flex-1 py-2.5 px-4 text-sm font-bold rounded-lg text-slate-500 hover:text-slate-700 hover:bg-slate-300/50 transition-all";
-                
                 document.getElementById('formIcon').setAttribute('data-lucide', 'shopping-cart');
                 document.getElementById('formTitleText').innerText = "Dados da Compra";
                 
@@ -630,7 +742,7 @@
                 document.getElementById('userContainer').classList.add('sm:col-span-1');
 
                 // Voltar lista para Estabelecimentos de Compra (somente se não estiver restaurando)
-                if (!isRestoring) {
+                if (!isRestoring && listChanged) {
                     document.getElementById('establishmentSelect').innerHTML = optionsCompra;
                     document.getElementById('establishmentSelect').value = "";
                     handleEstablishmentChange();
@@ -959,6 +1071,12 @@
         }
 
         function executeClear() {
+            if (currentMode === 'motorista') {
+                clearMotorista();
+                hideClearConfirmModal();
+                return;
+            }
+
             document.getElementById('receiptForm').reset();
             
             document.getElementById('customEstablishmentContainer').classList.add('hidden');
@@ -1025,6 +1143,11 @@
 
         // Envio do Relatório
         function confirmBeforeSend() {
+            if (currentMode === 'motorista') {
+                confirmMotoristaSend();
+                return;
+            }
+
             const form = document.getElementById('receiptForm');
             
             // Verifica primeiro se todos os campos obrigatórios estão preenchidos
@@ -1039,14 +1162,19 @@
                 return;
             }
 
-            document.getElementById('confirmModal').classList.remove('hidden'); 
-            lucide.createIcons(); 
+            document.getElementById('confirmModalText').innerText = 'Verifique se os dados e as fotos anexadas estão corretos.';
+            document.getElementById('confirmModal').classList.remove('hidden');
+            lucide.createIcons();
         }
 
         function hideConfirmModal() { document.getElementById('confirmModal').classList.add('hidden'); }
         
         function executeSend() { 
             hideConfirmModal(); 
+            if (currentMode === 'motorista') {
+                sendMotorista();
+                return;
+            }
             downloadAndShare(); 
         }
 
@@ -1160,9 +1288,6 @@
         }
 
         async function sendDataToGoogleSheets(payload) {
-            // URL configurada do Apps Script - Se quiser salvar isso numa planilha, atualize a URL
-            const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzOT5nv3C9ILZZM1VzRHkFKRvTFv5ngbIds57IbsXXoyFQeev-GZFT9Glu2Zlwd8kMA/exec"; 
-            
             if (!SCRIPT_URL || SCRIPT_URL === "SUA_URL_DO_APPS_SCRIPT_AQUI") {
                 console.log("URL do Apps Script não configurada.");
                 return;
@@ -1200,6 +1325,353 @@
         }
         
         function hideMessageModal() { document.getElementById('messageModal').classList.add('hidden'); }
+
+        // ===================== ABA MOTORISTA =====================
+        // Destino fixo das cargas (link: https://maps.app.goo.gl/oGktDv4D8CBGdCQF7)
+        const DESTINO_MOTORISTA = { nome: 'SPG Indústria e Distribuidora', lat: -4.1711844, lng: -40.8889288 };
+
+        const MOTORISTA_PADRAO = 'Mateus Paulo';
+
+        const VARIEDADES = ['BRO', 'Master'];
+        const VARIEDADE_PADRAO = 'BRO';
+
+        let motoristaItens = []; // [{ bloco, variedade, caixas }]
+        let motoristaRota = { km: null, fonte: null, calculadoEm: null }; // fonte: 'gps' | 'manual'
+
+        function initMotorista() {
+            document.getElementById('destinoNomeLabel').innerText = DESTINO_MOTORISTA.nome;
+            const wazeLink = document.getElementById('motoristaWazeLink');
+            if (hasDestinoCoords()) {
+                wazeLink.href = `https://waze.com/ul?ll=${DESTINO_MOTORISTA.lat},${DESTINO_MOTORISTA.lng}&navigate=yes`;
+            } else {
+                wazeLink.classList.add('hidden');
+            }
+
+            // Restaura o estado da sessão (e o nome/veículo lembrados no aparelho)
+            let saved = null;
+            try { saved = JSON.parse(sessionStorage.getItem('spgMotoristaState')); } catch (e) {}
+            if (saved) {
+                motoristaItens = saved.itens || [];
+                motoristaRota = saved.rota || motoristaRota;
+                document.getElementById('motoristaNome').value = saved.nome || MOTORISTA_PADRAO;
+                document.getElementById('motoristaMinutos').value = saved.minutos || '';
+            } else {
+                try {
+                    document.getElementById('motoristaNome').value = localStorage.getItem('spgMotoristaNome') || MOTORISTA_PADRAO;
+                } catch (e) {}
+            }
+            // Itens salvos com variedade fora da lista voltam para o padrão
+            motoristaItens.forEach(i => { if (!VARIEDADES.includes(i.variedade)) i.variedade = VARIEDADE_PADRAO; });
+            if (motoristaItens.length === 0) motoristaItens.push({ bloco: '', variedade: VARIEDADE_PADRAO, caixas: '' });
+
+            renderCargaRows();
+            renderMotoristaSugestoes();
+
+            document.getElementById('cargaRows').addEventListener('input', (e) => {
+                const idx = e.target.dataset.idx;
+                const field = e.target.dataset.field;
+                if (idx === undefined || !field) return;
+                motoristaItens[idx][field] = e.target.value;
+                updateMotoristaPreview();
+            });
+            document.getElementById('motoristaForm').addEventListener('input', saveMotoristaState);
+
+            updateMotoristaPreview();
+        }
+
+        function hasDestinoCoords() {
+            return typeof DESTINO_MOTORISTA.lat === 'number' && typeof DESTINO_MOTORISTA.lng === 'number';
+        }
+
+        function saveMotoristaState() {
+            const state = {
+                nome: document.getElementById('motoristaNome').value,
+                minutos: document.getElementById('motoristaMinutos').value,
+                itens: motoristaItens,
+                rota: motoristaRota
+            };
+            try { sessionStorage.setItem('spgMotoristaState', JSON.stringify(state)); } catch (e) {}
+        }
+
+        function escapeHtml(str) {
+            return String(str ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+        }
+
+        function renderCargaRows() {
+            const canRemove = motoristaItens.length > 1;
+            document.getElementById('cargaRows').innerHTML = motoristaItens.map((item, i) => `
+                <div class="grid grid-cols-12 gap-2 items-end bg-slate-50 p-2 rounded-xl border border-slate-200 animate-fade-in-down">
+                    <div class="col-span-3">
+                        <label class="text-[10px] font-bold text-slate-400 uppercase block mb-0.5">Bloco</label>
+                        <input type="text" list="blocoSugestoes" required data-idx="${i}" data-field="bloco" value="${escapeHtml(item.bloco)}" placeholder="Ex: 5" class="w-full p-2 border border-slate-300 rounded-lg text-sm bg-white focus:ring-2 focus:ring-brand-500 outline-none font-bold">
+                    </div>
+                    <div class="col-span-5">
+                        <label class="text-[10px] font-bold text-slate-400 uppercase block mb-0.5">Variedade</label>
+                        <select required data-idx="${i}" data-field="variedade" class="w-full p-2 border border-slate-300 rounded-lg text-sm bg-white focus:ring-2 focus:ring-brand-500 outline-none font-bold">
+                            ${VARIEDADES.map(v => `<option value="${v}" ${v === item.variedade ? 'selected' : ''}>${v}</option>`).join('')}
+                        </select>
+                    </div>
+                    <div class="col-span-3">
+                        <label class="text-[10px] font-bold text-slate-400 uppercase block mb-0.5">Caixas</label>
+                        <input type="number" inputmode="numeric" min="1" required data-idx="${i}" data-field="caixas" value="${escapeHtml(item.caixas)}" placeholder="0" class="w-full p-2 border border-slate-300 rounded-lg text-sm bg-white focus:ring-2 focus:ring-brand-500 outline-none font-bold">
+                    </div>
+                    <div class="col-span-1 flex justify-center pb-1.5">
+                        <button type="button" onclick="removeCargaRow(${i})" class="p-1.5 rounded-lg text-red-500 hover:bg-red-50 active:scale-95 transition-all ${canRemove ? '' : 'invisible'}" title="Remover">
+                            <i data-lucide="x" class="w-4 h-4"></i>
+                        </button>
+                    </div>
+                </div>
+            `).join('');
+            lucide.createIcons();
+        }
+
+        function addCargaRow() {
+            motoristaItens.push({ bloco: '', variedade: VARIEDADE_PADRAO, caixas: '' });
+            renderCargaRows();
+            updateMotoristaPreview();
+            saveMotoristaState();
+            const inputs = document.querySelectorAll('#cargaRows input[data-field="bloco"]');
+            inputs[inputs.length - 1].focus();
+        }
+
+        function removeCargaRow(index) {
+            motoristaItens.splice(index, 1);
+            renderCargaRows();
+            updateMotoristaPreview();
+            saveMotoristaState();
+        }
+
+        // Sugestões de blocos já usados neste aparelho
+        function getMotoristaSugestoes() {
+            try {
+                return JSON.parse(localStorage.getItem('spgMotoristaSugestoes')) || { blocos: [] };
+            } catch (e) {
+                return { blocos: [] };
+            }
+        }
+
+        function renderMotoristaSugestoes() {
+            const sug = getMotoristaSugestoes();
+            document.getElementById('blocoSugestoes').innerHTML = sug.blocos.map(b => `<option value="${escapeHtml(b)}">`).join('');
+        }
+
+        function rememberMotoristaSugestoes() {
+            const sug = getMotoristaSugestoes();
+            const merge = (list, values) => [...new Set([...values, ...list])].slice(0, 50);
+            sug.blocos = merge(sug.blocos, motoristaItens.map(i => i.bloco.trim()).filter(Boolean));
+            try {
+                localStorage.setItem('spgMotoristaSugestoes', JSON.stringify(sug));
+                localStorage.setItem('spgMotoristaNome', document.getElementById('motoristaNome').value.trim());
+            } catch (e) {}
+            renderMotoristaSugestoes();
+        }
+
+        function getTotalCaixas() {
+            return motoristaItens.reduce((sum, i) => sum + (parseInt(i.caixas, 10) || 0), 0);
+        }
+
+        function formatHora(date) {
+            return date.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+        }
+
+        function getMotoristaMinutos() {
+            const min = parseInt(document.getElementById('motoristaMinutos').value, 10);
+            return min > 0 ? min : null;
+        }
+
+        // Saída, tempo e chegada congelados no clique em "Enviar" (null = ainda não calculado)
+        let motoristaEnvio = null; // { saida: Date, minutos, chegada: Date }
+        let isCalculandoEnvio = false;
+
+        // Calcula o tempo até o destino a partir da localização atual do motorista (funciona sem internet)
+        async function obterRotaAtual() {
+            if (!hasDestinoCoords()) throw new Error('Destino não configurado em DESTINO_MOTORISTA.');
+            if (!navigator.geolocation) throw new Error('Este aparelho não permite obter a localização.');
+
+            const pos = await obterPosicaoGps();
+            return rotaOffline({ lat: pos.coords.latitude, lng: pos.coords.longitude });
+        }
+
+        // Sem internet o GPS demora mais para fixar (sem A-GPS); se a leitura precisa falhar, usa a última posição conhecida
+        async function obterPosicaoGps() {
+            const getPos = (opts) => new Promise((resolve, reject) => navigator.geolocation.getCurrentPosition(resolve, reject, opts));
+            try {
+                return await getPos({ enableHighAccuracy: true, timeout: 30000, maximumAge: 120000 });
+            } catch (geoErr) {
+                if (geoErr.code === 1) throw new Error('Permita o acesso à localização no navegador.');
+                try {
+                    return await getPos({ enableHighAccuracy: false, timeout: 10000, maximumAge: 600000 });
+                } catch (e) {
+                    throw new Error('Não foi possível obter a localização. Verifique se o GPS está ligado.');
+                }
+            }
+        }
+
+        // Trajeto Fazenda Oásis -> SPG Indústria gravado no app ([lat, lng]), para calcular sem internet
+        const ROTA_PONTOS = [[-4.21388,-40.86667],[-4.21386,-40.86667],[-4.21202,-40.86627],[-4.21065,-40.86648],[-4.20957,-40.86661],[-4.2092,-40.867],[-4.20874,-40.86723],[-4.20441,-40.86613],[-4.20045,-40.86508],[-4.19836,-40.86451],[-4.19804,-40.86455],[-4.19763,-40.86474],[-4.19726,-40.8651],[-4.19627,-40.8662],[-4.19606,-40.86635],[-4.19576,-40.86647],[-4.19519,-40.8666],[-4.19362,-40.86684],[-4.18911,-40.8673],[-4.18854,-40.86742],[-4.18737,-40.86782],[-4.18714,-40.8678],[-4.18486,-40.86722],[-4.18217,-40.86645],[-4.18087,-40.86613],[-4.17865,-40.86547],[-4.17828,-40.86544],[-4.17767,-40.86526],[-4.17693,-40.86502],[-4.17588,-40.86472],[-4.1757,-40.86547],[-4.17556,-40.86621],[-4.1755,-40.8665],[-4.17542,-40.86689],[-4.17537,-40.86808],[-4.17538,-40.86885],[-4.17534,-40.86906],[-4.17521,-40.86946],[-4.17485,-40.87035],[-4.17468,-40.87081],[-4.17433,-40.87172],[-4.17409,-40.87238],[-4.17387,-40.87306],[-4.17369,-40.87425],[-4.1734,-40.87568],[-4.17323,-40.87618],[-4.17285,-40.87704],[-4.17272,-40.87733],[-4.17267,-40.87741],[-4.17263,-40.8775],[-4.1724,-40.87803],[-4.17234,-40.87827],[-4.1723,-40.87855],[-4.17218,-40.87956],[-4.1722,-40.8803],[-4.17209,-40.88071],[-4.17179,-40.88145],[-4.17069,-40.88383],[-4.17033,-40.88485],[-4.17004,-40.88598],[-4.16946,-40.88691],[-4.1693,-40.88712],[-4.16911,-40.88741],[-4.16898,-40.88763],[-4.16888,-40.88785],[-4.16879,-40.88808],[-4.16873,-40.88829],[-4.16871,-40.8885],[-4.16869,-40.88911],[-4.16865,-40.88934],[-4.16956,-40.88979],[-4.16967,-40.8898],[-4.16974,-40.88978],[-4.16979,-40.88967],[-4.1699,-40.88915],[-4.16994,-40.88909],[-4.17002,-40.88905],[-4.17009,-40.88904],[-4.17093,-40.88924],[-4.17104,-40.88924],[-4.17112,-40.88921],[-4.17116,-40.88914]];
+
+        // Velocidade na estrada calibrada pelo Google Maps (trajeto completo de ~7,7 km em 11 min)
+        const VELOCIDADE_ESTRADA_MPS = 7679 / 660;
+        // Velocidade estimada do ponto atual (ex: meio do campo) até a estrada, em linha reta
+        const VELOCIDADE_CAMPO_MPS = 15 / 3.6;
+
+        // Converte [lat, lng] em metros num plano local (precisão suficiente para alguns km)
+        function toMetros([lat, lng]) {
+            const R = 6371000;
+            return { x: lng * Math.PI / 180 * R * Math.cos(-4.19 * Math.PI / 180), y: lat * Math.PI / 180 * R };
+        }
+
+        // Projeta a posição no trajeto e soma: trecho em linha reta até a estrada + o que falta da estrada até o destino
+        function rotaOffline(origem) {
+            const p = toMetros([origem.lat, origem.lng]);
+            const pts = ROTA_PONTOS.map(toMetros);
+
+            // Comprimento restante a partir de cada ponto até o fim
+            const restante = new Array(pts.length).fill(0);
+            for (let i = pts.length - 2; i >= 0; i--) {
+                restante[i] = restante[i + 1] + Math.hypot(pts[i + 1].x - pts[i].x, pts[i + 1].y - pts[i].y);
+            }
+
+            let melhor = { dist: Infinity, falta: 0 };
+            for (let i = 0; i < pts.length - 1; i++) {
+                const a = pts[i], b = pts[i + 1];
+                const dx = b.x - a.x, dy = b.y - a.y;
+                const len2 = dx * dx + dy * dy;
+                const t = len2 ? Math.max(0, Math.min(1, ((p.x - a.x) * dx + (p.y - a.y) * dy) / len2)) : 0;
+                const qx = a.x + t * dx, qy = a.y + t * dy;
+                const dist = Math.hypot(p.x - qx, p.y - qy);
+                if (dist < melhor.dist) {
+                    melhor = { dist, falta: (1 - t) * Math.sqrt(len2) + restante[i + 1] };
+                }
+            }
+
+            const segundos = melhor.falta / VELOCIDADE_ESTRADA_MPS + melhor.dist / VELOCIDADE_CAMPO_MPS;
+            return { minutos: Math.max(1, Math.round(segundos / 60)), km: (melhor.falta + melhor.dist) / 1000, fonte: 'gps' };
+        }
+
+        function buildMotoristaMessage() {
+            const nome = document.getElementById('motoristaNome').value.trim();
+            const itens = motoristaItens.filter(i => i.bloco.trim() || i.caixas);
+            const total = getTotalCaixas();
+            const pendente = 'calculado ao enviar';
+
+            let text = `🚚 *CARGA A CAMINHO - SPG*\n\n`;
+            text += `*Motorista:* ${nome || '---'}\n`;
+            text += `*Saída:* ${motoristaEnvio ? formatHora(motoristaEnvio.saida) : pendente}\n\n`;
+
+            text += `📦 *CAIXAS NA CARGA*\n`;
+            if (itens.length === 0) text += `---\n`;
+            itens.forEach(i => {
+                const bloco = i.bloco.trim().replace(/^bloco\s*/i, '') || '?';
+                const caixas = parseInt(i.caixas, 10) || 0;
+                text += `• Bloco ${bloco} - ${i.variedade.trim() || '?'}: ${caixas} cx\n`;
+            });
+            text += `*Total:* ${total} ${total === 1 ? 'caixa' : 'caixas'}\n\n`;
+
+            text += `📍 *Destino:* ${DESTINO_MOTORISTA.nome}\n`;
+            if (motoristaEnvio && motoristaRota.km && motoristaRota.fonte !== 'manual') {
+                text += `*Distância:* ${motoristaRota.km.toLocaleString('pt-BR', { maximumFractionDigits: 1 })} km\n`;
+            }
+            text += `*Tempo estimado:* ${motoristaEnvio ? `${motoristaEnvio.minutos} min` : pendente}\n`;
+            text += `⏰ *Chegada prevista:* ${motoristaEnvio ? formatHora(motoristaEnvio.chegada) : 'calculada ao enviar'}`;
+            return text;
+        }
+
+        function updateMotoristaPreview() {
+            document.getElementById('motoristaChegada').innerText = motoristaEnvio ? formatHora(motoristaEnvio.chegada) : 'Ao enviar';
+            document.getElementById('cargaTotalBadge').innerText = getTotalCaixas();
+
+            const info = document.getElementById('motoristaRotaInfo');
+            if (motoristaEnvio && motoristaRota.fonte === 'manual') {
+                info.innerText = `GPS indisponível: usado o tempo manual de ${motoristaEnvio.minutos} min às ${formatHora(motoristaEnvio.saida)}.`;
+            } else if (motoristaEnvio) {
+                const km = motoristaRota.km ? `${motoristaRota.km.toLocaleString('pt-BR', { maximumFractionDigits: 1 })} km • ` : '';
+                info.innerText = `Último envio: calculado pelo GPS (sem internet) • ${km}${motoristaEnvio.minutos} min, calculado às ${formatHora(motoristaEnvio.saida)}.`;
+            } else {
+                info.innerText = MOTORISTA_INFO_PADRAO;
+            }
+
+            // Prévia com negrito no estilo do WhatsApp
+            document.getElementById('motoristaPreview').innerHTML = escapeHtml(buildMotoristaMessage()).replace(/\*([^*\n]+)\*/g, '<b>$1</b>');
+        }
+
+        const MOTORISTA_INFO_PADRAO = 'O tempo de viagem e a chegada são calculados pelo GPS quando você toca em "Enviar" (funciona sem internet). Preencha o tempo manual só se o GPS não funcionar.';
+
+        // Clique em "Enviar": calcula a rota pelo GPS agora e congela saída/chegada antes da confirmação
+        async function confirmMotoristaSend() {
+            if (isCalculandoEnvio) return;
+            const form = document.getElementById('motoristaForm');
+            if (!form.checkValidity()) {
+                form.reportValidity();
+                return;
+            }
+            if (getTotalCaixas() === 0) {
+                showMessageModal('Carga vazia', 'Informe a quantidade de caixas antes de enviar.', 'error');
+                return;
+            }
+
+            isCalculandoEnvio = true;
+            const btnSpan = document.querySelector('button[onclick="confirmBeforeSend()"] span.hidden.sm\\:inline') || document.querySelector('button[onclick="confirmBeforeSend()"] span');
+            const originalText = btnSpan.innerText;
+            btnSpan.innerText = 'Calculando rota...';
+
+            try {
+                let minutos;
+                try {
+                    const rota = await obterRotaAtual();
+                    motoristaRota = { km: rota.km, fonte: rota.fonte, calculadoEm: Date.now() };
+                    minutos = rota.minutos;
+                } catch (rotaErr) {
+                    console.warn('Falha no cálculo da rota:', rotaErr);
+                    minutos = getMotoristaMinutos();
+                    if (!minutos) {
+                        showMessageModal('Falha no cálculo', `${rotaErr.message} Preencha o "Tempo manual" e toque em Enviar novamente.`, 'error');
+                        return;
+                    }
+                    motoristaRota = { km: null, fonte: 'manual', calculadoEm: Date.now() };
+                }
+
+                const saida = new Date();
+                motoristaEnvio = { saida, minutos, chegada: new Date(saida.getTime() + minutos * 60000) };
+                saveMotoristaState();
+                updateMotoristaPreview();
+
+                document.getElementById('confirmModalText').innerText = `Chegada prevista às ${formatHora(motoristaEnvio.chegada)} (${minutos} min) com ${getTotalCaixas()} caixas. Confira os dados antes de enviar.`;
+                document.getElementById('confirmModal').classList.remove('hidden');
+                lucide.createIcons();
+            } finally {
+                btnSpan.innerText = originalText;
+                isCalculandoEnvio = false;
+            }
+        }
+
+        async function sendMotorista() {
+            const text = buildMotoristaMessage();
+            rememberMotoristaSugestoes();
+
+            // No celular abre a folha de compartilhamento (escolher WhatsApp > grupo); no PC abre o WhatsApp Web
+            if (navigator.share) {
+                try {
+                    await navigator.share({ text });
+                    return;
+                } catch (shareErr) {
+                    if (shareErr.name === 'AbortError') return;
+                    console.log('Compartilhamento falhou, abrindo WhatsApp:', shareErr);
+                }
+            }
+            window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(text)}`, '_blank');
+        }
+
+        // Limpa a carga e a rota; mantém o motorista para o próximo envio
+        function clearMotorista() {
+            motoristaItens = [{ bloco: '', variedade: VARIEDADE_PADRAO, caixas: '' }];
+            motoristaRota = { km: null, fonte: null, calculadoEm: null };
+            motoristaEnvio = null;
+            document.getElementById('motoristaMinutos').value = '';
+            renderCargaRows();
+            updateMotoristaPreview();
+            saveMotoristaState();
+        }
     </script>
 </body>
 </html>
