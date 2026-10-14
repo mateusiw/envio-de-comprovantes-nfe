@@ -79,10 +79,10 @@
     <!-- SELETOR DE MODO -->
     <div class="container mx-auto px-4 mt-4">
         <div class="w-full lg:w-1/2 bg-slate-200/70 p-1.5 rounded-xl flex gap-1 shadow-inner">
-            <button type="button" id="btnModeMotorista" onclick="setMode('motorista')" class="flex-1 py-2.5 px-2 text-sm font-bold rounded-lg text-slate-500 hover:text-slate-700 hover:bg-slate-300/50 transition-all">
+            <button type="button" id="btnModeMotorista" onclick="setMode('motorista')" class="flex-1 py-2.5 px-2 text-sm font-black rounded-lg bg-white shadow-sm text-brand-600 transition-all border border-slate-200/50">
                 🚚 Motorista
             </button>
-            <button type="button" id="btnModeCompra" onclick="setMode('compra')" class="flex-1 py-2.5 px-2 text-sm font-black rounded-lg bg-white shadow-sm text-brand-600 transition-all border border-slate-200/50">
+            <button type="button" id="btnModeCompra" onclick="setMode('compra')" class="flex-1 py-2.5 px-2 text-sm font-bold rounded-lg text-slate-500 hover:text-slate-700 hover:bg-slate-300/50 transition-all">
                 💳 Compras
             </button>
             <button type="button" id="btnModeNF" onclick="setMode('nf')" class="flex-1 py-2.5 px-2 text-sm font-bold rounded-lg text-slate-500 hover:text-slate-700 hover:bg-slate-300/50 transition-all">
@@ -91,7 +91,7 @@
         </div>
     </div>
 
-    <div id="financeView" class="container mx-auto p-4 flex flex-col lg:flex-row gap-8">
+    <div id="financeView" class="container mx-auto p-4 flex-col lg:flex-row gap-8 hidden">
 
         <!-- COLUNA DA ESQUERDA: FORMULÁRIO -->
         <div class="w-full lg:w-1/2 space-y-4">
@@ -336,7 +336,7 @@
     </div>
 
     <!-- ABA MOTORISTA -->
-    <div id="motoristaView" class="container mx-auto p-4 flex-col lg:flex-row gap-8 hidden">
+    <div id="motoristaView" class="container mx-auto p-4 flex flex-col lg:flex-row gap-8">
 
         <!-- COLUNA DA ESQUERDA: FORMULÁRIO DO MOTORISTA -->
         <div class="w-full lg:w-1/2 space-y-4">
@@ -380,13 +380,18 @@
 
                         <div class="grid grid-cols-2 gap-4">
                             <div>
-                                <label class="text-xs font-bold text-slate-500 uppercase mb-1 block">Tempo manual (min)</label>
-                                <input type="number" inputmode="numeric" min="1" id="motoristaMinutos" placeholder="Só se o GPS falhar" class="w-full p-2 border border-slate-300 rounded-lg text-sm bg-white focus:ring-2 focus:ring-brand-500 outline-none font-bold">
+                                <p class="text-xs font-bold text-slate-500 uppercase mb-1">Tempo de viagem</p>
+                                <p class="p-2 text-lg font-black text-brand-700 leading-tight" id="motoristaTempo">Buscando GPS...</p>
                             </div>
                             <div>
                                 <p class="text-xs font-bold text-slate-500 uppercase mb-1">Chegada prevista</p>
                                 <p class="p-2 text-lg font-black text-brand-700 leading-tight" id="motoristaChegada">Ao enviar</p>
                             </div>
+                        </div>
+                        <!-- Só aparece se o GPS não funcionar -->
+                        <div id="motoristaManualWrap" class="hidden animate-fade-in-down">
+                            <label class="text-xs font-bold text-red-500 uppercase mb-1 block">GPS indisponível: tempo manual (min)</label>
+                            <input type="number" inputmode="numeric" min="1" id="motoristaMinutos" placeholder="Ex: 11" class="w-full p-2 border border-red-300 rounded-lg text-sm bg-white focus:ring-2 focus:ring-brand-500 outline-none font-bold">
                         </div>
                         <p id="motoristaRotaInfo" class="text-[11px] text-slate-500 font-medium leading-relaxed"></p>
                         <a id="motoristaWazeLink" href="#" target="_blank" rel="noopener" class="inline-flex items-center gap-1 text-xs font-bold text-sky-600 hover:underline">
@@ -464,7 +469,7 @@
 
         // Novo estado unificado separando imagens por aba
         let photosData = { compra: [], nf: [] };
-        let currentMode = 'compra'; // Modos: 'compra', 'nf' ou 'motorista'
+        let currentMode = 'motorista'; // Modos: 'compra', 'nf' ou 'motorista'
         let lastFinanceMode = 'compra'; // Última aba de formulário financeiro (compra/nf)
 
         const optionsCompra = `
@@ -593,14 +598,13 @@
                 try { state = JSON.parse(saved); } catch (e) {}
             }
 
-            if (state && state.mode) {
-                currentMode = state.mode;
-            }
+            // O app sempre abre na aba Motorista; os dados de Compras/NF continuam guardados na aba deles
             if (state && state.lastFinanceMode) {
                 lastFinanceMode = state.lastFinanceMode;
-            } else if (currentMode !== 'motorista') {
-                lastFinanceMode = currentMode;
+            } else if (state && (state.mode === 'compra' || state.mode === 'nf')) {
+                lastFinanceMode = state.mode;
             }
+            currentMode = 'motorista';
 
             // 2. Aplicar options do select logo de cara (para não apagar na restauração)
             const isNF = lastFinanceMode === 'nf';
@@ -628,8 +632,9 @@
             }
 
             // 5. Configura e reflete a interface final (isRestoring = true evita limpar select)
-            if (currentMode === 'motorista') setMode(lastFinanceMode, true);
-            setMode(currentMode, true);
+            // Monta primeiro o formulário financeiro (para os dados restaurados) e depois abre a aba Motorista
+            setMode(lastFinanceMode, true);
+            setMode('motorista', true);
             
             handleEstablishmentChange();
             handleUserChange();
@@ -667,10 +672,12 @@
 
             if (isMotorista) {
                 lucide.createIcons();
+                iniciarGpsMotorista();
                 updateMotoristaPreview();
                 if (!isRestoring) saveState();
                 return;
             }
+            pararGpsMotorista(); // economiza bateria fora da aba Motorista
 
             // Só troca a lista de estabelecimentos se o tipo de formulário mudou (ida e volta pela aba Motorista mantém os dados)
             const listChanged = mode !== lastFinanceMode;
@@ -1483,6 +1490,48 @@
         let motoristaEnvio = null; // { saida: Date, minutos, chegada: Date }
         let isCalculandoEnvio = false;
 
+        // Tempo de viagem atualizado automaticamente pelo GPS enquanto a aba Motorista está aberta
+        let motoristaGpsWatch = null;
+        let motoristaRotaAoVivo = null; // { minutos, km, fonte, em }
+
+        function iniciarGpsMotorista() {
+            if (motoristaGpsWatch !== null || !hasDestinoCoords()) return;
+            if (!navigator.geolocation) {
+                mostrarTempoManual();
+                return;
+            }
+            motoristaGpsWatch = navigator.geolocation.watchPosition((pos) => {
+                motoristaRotaAoVivo = { ...rotaOffline({ lat: pos.coords.latitude, lng: pos.coords.longitude }), em: Date.now() };
+                document.getElementById('motoristaManualWrap').classList.add('hidden');
+                updateMotoristaTempo();
+            }, (err) => {
+                console.warn('GPS:', err);
+                if (!motoristaRotaAoVivo) mostrarTempoManual();
+            }, { enableHighAccuracy: true, maximumAge: 30000, timeout: 60000 });
+        }
+
+        function pararGpsMotorista() {
+            if (motoristaGpsWatch === null) return;
+            navigator.geolocation.clearWatch(motoristaGpsWatch);
+            motoristaGpsWatch = null;
+        }
+
+        function mostrarTempoManual() {
+            document.getElementById('motoristaManualWrap').classList.remove('hidden');
+            updateMotoristaTempo();
+        }
+
+        function updateMotoristaTempo() {
+            const el = document.getElementById('motoristaTempo');
+            if (motoristaRotaAoVivo) {
+                el.innerText = `${motoristaRotaAoVivo.minutos} min`;
+            } else if (!document.getElementById('motoristaManualWrap').classList.contains('hidden')) {
+                el.innerText = 'Sem GPS';
+            } else {
+                el.innerText = 'Buscando GPS...';
+            }
+        }
+
         // Calcula o tempo até o destino a partir da localização atual do motorista (funciona sem internet)
         async function obterRotaAtual() {
             if (!hasDestinoCoords()) throw new Error('Destino não configurado em DESTINO_MOTORISTA.');
@@ -1580,6 +1629,7 @@
         function updateMotoristaPreview() {
             document.getElementById('motoristaChegada').innerText = motoristaEnvio ? formatHora(motoristaEnvio.chegada) : 'Ao enviar';
             document.getElementById('cargaTotalBadge').innerText = getTotalCaixas();
+            updateMotoristaTempo();
 
             const info = document.getElementById('motoristaRotaInfo');
             if (motoristaEnvio && motoristaRota.fonte === 'manual') {
@@ -1595,7 +1645,7 @@
             document.getElementById('motoristaPreview').innerHTML = escapeHtml(buildMotoristaMessage()).replace(/\*([^*\n]+)\*/g, '<b>$1</b>');
         }
 
-        const MOTORISTA_INFO_PADRAO = 'O tempo de viagem e a chegada são calculados pelo GPS quando você toca em "Enviar" (funciona sem internet). Preencha o tempo manual só se o GPS não funcionar.';
+        const MOTORISTA_INFO_PADRAO = 'O tempo de viagem é atualizado automaticamente pelo GPS (funciona sem internet). A chegada é fixada quando você toca em "Enviar".';
 
         // Clique em "Enviar": calcula a rota pelo GPS agora e congela saída/chegada antes da confirmação
         async function confirmMotoristaSend() {
@@ -1618,14 +1668,17 @@
             try {
                 let minutos;
                 try {
-                    const rota = await obterRotaAtual();
+                    // Usa a posição do GPS automático se for recente (até 2 min); senão faz uma leitura nova
+                    const aoVivoRecente = motoristaRotaAoVivo && Date.now() - motoristaRotaAoVivo.em < 120000;
+                    const rota = aoVivoRecente ? motoristaRotaAoVivo : await obterRotaAtual();
                     motoristaRota = { km: rota.km, fonte: rota.fonte, calculadoEm: Date.now() };
                     minutos = rota.minutos;
                 } catch (rotaErr) {
                     console.warn('Falha no cálculo da rota:', rotaErr);
                     minutos = getMotoristaMinutos();
                     if (!minutos) {
-                        showMessageModal('Falha no cálculo', `${rotaErr.message} Preencha o "Tempo manual" e toque em Enviar novamente.`, 'error');
+                        mostrarTempoManual();
+                        showMessageModal('Falha no cálculo', `${rotaErr.message} Preencha o tempo manual e toque em Enviar novamente.`, 'error');
                         return;
                     }
                     motoristaRota = { km: null, fonte: 'manual', calculadoEm: Date.now() };
