@@ -347,30 +347,6 @@
 
                 <form id="motoristaForm" class="space-y-4" onsubmit="return false">
                     <div>
-                        <label class="text-xs font-bold text-slate-500 uppercase mb-1 block">Motorista</label>
-                        <select id="motoristaNome" required onchange="onNomeSelectChange('motoristaNome')" class="w-full p-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand-500 outline-none text-sm bg-white font-bold">
-                            <option value="">Selecione...</option>
-                            <option value="Mateus Paulo" selected>Mateus Paulo</option>
-                            <option value="Pedro">Pedro</option>
-                            <option value="Guilherme">Guilherme</option>
-                            <option value="Clébio">Clébio</option>
-                            <option value="__outro__">Outro</option>
-                        </select>
-                        <input type="text" id="motoristaNomeOutro" oninput="updateMotoristaPreview()" placeholder="Digite o nome do motorista" class="hidden w-full mt-2 p-2 border border-slate-300 rounded-lg text-sm bg-white focus:ring-2 focus:ring-brand-500 outline-none font-bold">
-                    </div>
-
-                    <div>
-                        <label class="text-xs font-bold text-slate-500 uppercase mb-1 block">Responsável Técnico</label>
-                        <select id="responsavelNome" required onchange="onNomeSelectChange('responsavelNome')" class="w-full p-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand-500 outline-none text-sm bg-white font-bold">
-                            <option value="" selected>Selecione...</option>
-                            <option value="Jucivan Xavier">Jucivan Xavier</option>
-                            <option value="Lucas Soares">Lucas Soares</option>
-                            <option value="__outro__">Outro</option>
-                        </select>
-                        <input type="text" id="responsavelNomeOutro" oninput="updateMotoristaPreview()" placeholder="Digite o nome do Responsável Técnico" class="hidden w-full mt-2 p-2 border border-slate-300 rounded-lg text-sm bg-white focus:ring-2 focus:ring-brand-500 outline-none font-bold">
-                    </div>
-
-                    <div>
                         <label class="text-xs font-bold text-slate-500 uppercase mb-1 block">Horário de saída do motorista</label>
                         <div class="flex gap-2">
                             <input type="time" id="motoristaSaida" required oninput="onSaidaChange()" class="flex-1 min-w-0 p-2 border border-slate-300 rounded-lg text-sm bg-white focus:ring-2 focus:ring-brand-500 outline-none font-bold">
@@ -432,7 +408,7 @@
                         <div class="grid grid-cols-2 gap-4">
                             <div>
                                 <p class="text-xs font-bold text-slate-500 uppercase mb-1">Tempo de viagem</p>
-                                <p class="p-2 text-lg font-black text-brand-700 leading-tight" id="motoristaTempo">11 min</p>
+                                <p class="p-2 text-lg font-black text-brand-700 leading-tight" id="motoristaTempo">16 min</p>
                             </div>
                             <div>
                                 <p class="text-xs font-bold text-slate-500 uppercase mb-1">Chegada prevista</p>
@@ -1381,13 +1357,11 @@
         // Destino fixo das cargas (link: https://maps.app.goo.gl/oGktDv4D8CBGdCQF7)
         const DESTINO_MOTORISTA = { nome: 'SPG Indústria e Distribuidora', lat: -4.1711844, lng: -40.8889288 };
 
-        const MOTORISTA_PADRAO = 'Mateus Paulo';
-
         const VARIEDADES = ['BRO', 'Master'];
         const VARIEDADE_PADRAO = 'BRO';
 
         // Trajeto Fazenda Oásis -> SPG sempre leva o mesmo tempo
-        const TEMPO_VIAGEM_MIN = 11;
+        const TEMPO_VIAGEM_MIN = 16;
 
         let motoristaItens = []; // [{ bloco, variedade, caixas }]
         let itensPorCarregamento = {}; // { '1º': [...], '2º': [...] } — blocos guardados de cada carregamento
@@ -1398,28 +1372,17 @@
             const wazeLink = document.getElementById('motoristaWazeLink');
             wazeLink.href = `https://waze.com/ul?ll=${DESTINO_MOTORISTA.lat},${DESTINO_MOTORISTA.lng}&navigate=yes`;
 
-            // Restaura o estado da sessão (e o nome/veículo lembrados no aparelho)
+            // Restaura o estado da sessão
             let saved = null;
             try { saved = JSON.parse(sessionStorage.getItem('spgMotoristaState')); } catch (e) {}
             if (saved) {
                 motoristaItens = saved.itens || [];
                 itensPorCarregamento = saved.itensPorCarregamento || {};
-                document.getElementById('motoristaNome').value = saved.nome || MOTORISTA_PADRAO;
-                document.getElementById('motoristaNomeOutro').value = saved.nomeOutro || '';
-                document.getElementById('responsavelNome').value = saved.responsavel || '';
-                document.getElementById('responsavelNomeOutro').value = saved.responsavelOutro || '';
                 document.getElementById('motoristaSaida').value = saved.saida || '';
                 document.getElementById('motoristaCarregamento').value = saved.carregamento || '1º';
                 document.getElementById('motoristaFinalizado').value = saved.finalizado || 'nao';
                 document.getElementById('motoristaPrevisao').value = saved.previsao || '';
-            } else {
-                try {
-                    setNomeSelect('motoristaNome', localStorage.getItem('spgMotoristaNome') || MOTORISTA_PADRAO);
-                    setNomeSelect('responsavelNome', localStorage.getItem('spgResponsavelNome'));
-                } catch (e) {}
             }
-            aplicarNomeOutro('motoristaNome');
-            aplicarNomeOutro('responsavelNome');
             carregamentoAtual = document.getElementById('motoristaCarregamento').value;
             // Itens salvos com variedade fora da lista voltam para o padrão
             motoristaItens.forEach(i => { if (!VARIEDADES.includes(i.variedade)) i.variedade = VARIEDADE_PADRAO; });
@@ -1456,10 +1419,6 @@
         function saveMotoristaState() {
             itensPorCarregamento[carregamentoAtual] = motoristaItens;
             const state = {
-                nome: document.getElementById('motoristaNome').value,
-                nomeOutro: document.getElementById('motoristaNomeOutro').value,
-                responsavel: document.getElementById('responsavelNome').value,
-                responsavelOutro: document.getElementById('responsavelNomeOutro').value,
                 saida: document.getElementById('motoristaSaida').value,
                 carregamento: document.getElementById('motoristaCarregamento').value,
                 finalizado: document.getElementById('motoristaFinalizado').value,
@@ -1555,41 +1514,8 @@
             sug.blocos = merge(sug.blocos, motoristaItens.map(i => i.bloco.trim()).filter(Boolean));
             try {
                 localStorage.setItem('spgMotoristaSugestoes', JSON.stringify(sug));
-                localStorage.setItem('spgMotoristaNome', getNomeSelect('motoristaNome'));
-                localStorage.setItem('spgResponsavelNome', getNomeSelect('responsavelNome'));
             } catch (e) {}
             renderMotoristaSugestoes();
-        }
-
-        // Listas de nomes com opção "Outro" (motorista e responsável técnico); o campo livre é o id + "Outro"
-        // Nome escolhido: o da lista ou o digitado em "Outro"
-        function getNomeSelect(id) {
-            const val = document.getElementById(id).value;
-            return (val === '__outro__' ? document.getElementById(id + 'Outro').value : val).trim();
-        }
-
-        // Seleciona o nome na lista; se não estiver registrado, usa "Outro" com o nome digitado
-        function setNomeSelect(id, nome) {
-            if (!nome) return;
-            const select = document.getElementById(id);
-            const naLista = [...select.options].some(o => o.value === nome && o.value !== '__outro__');
-            select.value = naLista ? nome : '__outro__';
-            document.getElementById(id + 'Outro').value = naLista ? '' : nome;
-        }
-
-        // Mostra o campo de nome livre só quando "Outro" está selecionado
-        function aplicarNomeOutro(id) {
-            const outro = document.getElementById(id).value === '__outro__';
-            const input = document.getElementById(id + 'Outro');
-            input.classList.toggle('hidden', !outro);
-            input.required = outro;
-            return outro;
-        }
-
-        function onNomeSelectChange(id) {
-            if (aplicarNomeOutro(id)) document.getElementById(id + 'Outro').focus();
-            updateMotoristaPreview();
-            saveMotoristaState();
         }
 
         function getTotalCaixas() {
@@ -1607,64 +1533,53 @@
         }
 
         function buildMotoristaMessage() {
-            const nome = getNomeSelect('motoristaNome');
-            const responsavel = getNomeSelect('responsavelNome');
             const itens = motoristaItens.filter(i => i.bloco.trim() || i.caixas);
             const total = getTotalCaixas();
 
-            let text = `*COLHEITA A CAMINHO - SPG*\n\n`;
-            text += `*Motorista:* ${nome || '---'}\n`;
-            text += `*Responsável Técnico:* ${responsavel || '---'}\n`;
+            const carregamento = document.getElementById('motoristaCarregamento').value;
+            let text = `*COLHEITA A CAMINHO · ${carregamento} CARREG.*\n`;
             const saidaData = getSaidaDate();
             const chegada = getChegadaDate();
-            text += `*Horário Saída:* ${saidaData ? formatHora(saidaData) : '--:--'}  *Previsão Chegada:* ${chegada ? formatHora(chegada) : '--:--'} (${TEMPO_VIAGEM_MIN} min)\n`;
-            const carregamento = document.getElementById('motoristaCarregamento');
-            text += `*${carregamento.options[carregamento.selectedIndex].text}*\n\n`;
+            text += `*HS:* ${saidaData ? formatHora(saidaData) : '--:--'} → *PC:* ${chegada ? formatHora(chegada) : '--:--'} (${TEMPO_VIAGEM_MIN} min)\n\n`;
 
-            text += `*Caixas*\n`;
             if (itens.length === 0) text += `---\n`;
             const formatNum = n => Math.round(n).toLocaleString('pt-BR');
-            let totalUnidades = 0;
-            itens.forEach(i => {
-                const bloco = i.bloco.trim().replace(/^bloco\s*/i, '') || '?';
-                const caixas = parseInt(i.caixas, 10) || 0;
-                const media = parseFloat(String(i.media ?? '').replace(',', '.'));
-                let mediaTxt = '';
-                if (media > 0) {
-                    // Unidades = caixas x média (ex: 90 cx x 21 un/cx = 1.890 un)
-                    const unidades = caixas * media;
-                    totalUnidades += unidades;
-                    mediaTxt = ` (média ${media.toLocaleString('pt-BR', { maximumFractionDigits: 1 })} un/cx) = ${formatNum(unidades)} un`;
-                }
-                text += `• Bloco ${bloco} - ${i.variedade.trim() || '?'}: ${caixas} cx${mediaTxt}\n`;
-            });
-            text += `*Total:* ${total} ${total === 1 ? 'caixa' : 'caixas'}`;
-            if (totalUnidades > 0) text += ` = ${formatNum(totalUnidades)} unidades`;
-            text += `\n\n`;
+            if (itens.length > 0) {
+                // Tabela em fonte monoespaçada do WhatsApp (```), com as colunas alinhadas
+                const cabecalho = ['BL', 'VAR', 'CX', 'UN/CX'];
+                const linhas = itens.map(i => {
+                    const media = parseFloat(String(i.media ?? '').replace(',', '.'));
+                    return [
+                        i.bloco.trim().replace(/^bloco\s*/i, '') || '?',
+                        i.variedade || '-',
+                        String(parseInt(i.caixas, 10) || 0),
+                        media > 0 ? media.toLocaleString('pt-BR', { maximumFractionDigits: 1 }) : '-'
+                    ];
+                });
+                const totalTxt = String(total);
+                const larguras = cabecalho.map((h, c) => Math.max(h.length, ...linhas.map(l => l[c].length), c === 2 ? totalTxt.length : 0));
+                // Coluna de caixas alinhada à direita; as outras à esquerda
+                const formatLinha = l => l.map((v, c) => c === 2 ? v.padStart(larguras[c]) : v.padEnd(larguras[c])).join('  ').trimEnd();
+                // Linha de total: "TOTAL" ocupa as colunas BL e VAR, o número fica embaixo das caixas
+                const separador = larguras.slice(0, 3).map(w => '-'.repeat(w)).join('  ');
+                const linhaTotal = 'TOTAL'.padEnd(larguras[0] + 2 + larguras[1]) + '  ' + totalTxt.padStart(larguras[2]);
+                text += '```\n' + [cabecalho, ...linhas].map(formatLinha).join('\n') + `\n${separador}\n${linhaTotal}\n` + '```\n\n';
+            }
 
             if (isFinalizado()) {
-                text += `*Colheita Finalizada*\n`;
+                text += `✅ *Colheita finalizada*\n`;
                 // Resumo do dia: soma de todos os carregamentos guardados (incluindo o atual)
                 const todos = { ...itensPorCarregamento, [carregamentoAtual]: motoristaItens };
-                let diaCaixas = 0, diaUnidades = 0, diaViagens = 0;
+                let diaCaixas = 0, diaViagens = 0;
                 Object.values(todos).forEach(lista => {
-                    let caixasCarregamento = 0;
-                    lista.forEach(i => {
-                        const caixas = parseInt(i.caixas, 10) || 0;
-                        const media = parseFloat(String(i.media ?? '').replace(',', '.'));
-                        caixasCarregamento += caixas;
-                        if (media > 0) diaUnidades += caixas * media;
-                    });
+                    const caixasCarregamento = lista.reduce((sum, i) => sum + (parseInt(i.caixas, 10) || 0), 0);
                     diaCaixas += caixasCarregamento;
                     if (caixasCarregamento > 0) diaViagens++;
                 });
-                text += `*Total de Caixas do Dia:* ${formatNum(diaCaixas)} ${diaCaixas === 1 ? 'caixa' : 'caixas'}\n`;
-                if (diaUnidades > 0) text += `*Total de Unidades:* ${formatNum(diaUnidades)} unidades\n`;
-                text += `*Total de Viagens:* ${diaViagens} ${diaViagens === 1 ? 'viagem' : 'viagens'}\n\n`;
+                text += `*Dia:* ${formatNum(diaCaixas)} cx em ${diaViagens} ${diaViagens === 1 ? 'viagem' : 'viagens'}\n`;
             } else {
                 const previsao = parseInt(document.getElementById('motoristaPrevisao').value, 10) || 0;
-                const previsaoTxt = previsao ? `${previsao} ${previsao === 1 ? 'caixa' : 'caixas'}` : 'não informada';
-                text += `*Caixas Previstas na Próxima Viagem:* ${previsaoTxt}\n\n`;
+                text += `*Próxima viagem:* ${previsao ? `~${previsao} cx` : 'não informada'}\n`;
             }
 
             return text.trimEnd();
@@ -1677,7 +1592,9 @@
             document.getElementById('motoristaRotaInfo').innerText = `Chegada = horário de saída + ${TEMPO_VIAGEM_MIN} min de viagem.`;
 
             // Prévia com negrito no estilo do WhatsApp
-            document.getElementById('motoristaPreview').innerHTML = escapeHtml(buildMotoristaMessage()).replace(/\*([^*\n]+)\*/g, '<b>$1</b>');
+            document.getElementById('motoristaPreview').innerHTML = escapeHtml(buildMotoristaMessage())
+                .replace(/```\n?([\s\S]*?)\n?```/g, '<span class="font-mono text-[13px]">$1</span>')
+                .replace(/\*([^*\n]+)\*/g, '<b>$1</b>');
         }
 
         // Horário de saída informado manualmente (HH:MM de hoje)
