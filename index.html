@@ -41,7 +41,10 @@
     </script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-    
+    <!-- Ferramenta de recorte da foto -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.2/cropper.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.2/cropper.min.js"></script>
+
     <style>
         body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; -webkit-tap-highlight-color: transparent; }
         .hide-scrollbar::-webkit-scrollbar { display: none; }
@@ -79,6 +82,9 @@
         .picker-option:hover { background: #f1f5f9; }
         .picker-option.is-selected { background: #f2f6f4; color: #3d4f46; }
         .picker-avatar { width: 2.25rem; height: 2.25rem; border-radius: 0.75rem; background: #dfe8e4; color: #3d4f46; font-size: 0.75rem; font-weight: 900; display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; }
+        .crop-tool { display: flex; flex-direction: column; align-items: center; gap: 0.25rem; min-width: 4.5rem; padding: 0.6rem 0.75rem; border-radius: 1rem; color: #e2e8f0; font-size: 0.7rem; font-weight: 700; transition: background-color .15s; }
+        .crop-tool:hover { background: rgba(255, 255, 255, 0.1); }
+        .crop-tool:active { transform: scale(0.95); }
         @keyframes sheetUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
         .preview-label { font-size: 10px; color: #94a3b8; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.25rem; }
         .preview-value { font-size: 0.875rem; font-weight: 700; color: #334155; display: flex; align-items: center; gap: 0.375rem; min-width: 0; }
@@ -425,6 +431,21 @@
         </div>
     </div>
 
+    <!-- MODAL DE RECORTE -->
+    <div id="cropModal" class="fixed inset-0 z-[80] hidden flex-col bg-slate-950">
+        <div class="flex items-center justify-between px-4 py-3 text-white">
+            <button type="button" onclick="fecharRecorte()" class="px-3 py-2 rounded-xl text-sm font-bold text-slate-300 hover:bg-white/10">Cancelar</button>
+            <p class="text-sm font-black">Recortar comprovante</p>
+            <button type="button" onclick="aplicarRecorte()" class="px-4 py-2 rounded-xl text-sm font-black bg-brand-500 hover:bg-brand-600 active:scale-95 transition-all">Aplicar</button>
+        </div>
+        <div id="cropArea" class="flex-1 min-h-0 px-2"></div>
+        <div class="flex justify-center gap-2 px-4 pt-3" style="padding-bottom: max(1rem, env(safe-area-inset-bottom));">
+            <button type="button" onclick="cropper?.rotate(-90)" class="crop-tool"><i data-lucide="rotate-ccw" class="w-5 h-5"></i>Girar</button>
+            <button type="button" onclick="cropper?.rotate(90)" class="crop-tool"><i data-lucide="rotate-cw" class="w-5 h-5"></i>Girar</button>
+            <button type="button" onclick="recorteFotoInteira()" class="crop-tool"><i data-lucide="maximize" class="w-5 h-5"></i>Foto inteira</button>
+        </div>
+    </div>
+
     <!-- MODAL DE MENSAGEM -->
     <div id="messageModal" class="fixed inset-0 bg-black/50 z-50 hidden flex justify-center items-center backdrop-blur-sm transition-opacity duration-300">
         <div class="bg-white rounded-xl shadow-2xl p-6 w-11/12 max-w-sm transform transition-all scale-100 text-center">
@@ -439,8 +460,11 @@
         // URL configurada do Apps Script (envio para a planilha)
         const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzOT5nv3C9ILZZM1VzRHkFKRvTFv5ngbIds57IbsXXoyFQeev-GZFT9Glu2Zlwd8kMA/exec";
 
-        // Fotos do comprovante (máx. 2), em base64
+        // Fotos do comprovante (máx. 2), em base64: photos é a imagem final (recortada ou não),
+        // photosOriginais a foto inteira (para refazer o recorte) e recortes a área usada (dados do Cropper.js) ou null
         let photos = [];
+        let photosOriginais = [];
+        let recortes = [];
 
         // Campos guardados no auto-save (forma de pagamento é radio e é tratada à parte)
         const CAMPOS_SALVOS = ['purchaseDate', 'purchaseAmount', 'establishmentSelect', 'customEstablishmentName', 'purchasePurpose', 'userSelect', 'customUserName', 'cardLastDigits', 'customCardName', 'installments'];
@@ -451,7 +475,7 @@
             CAMPOS_SALVOS.forEach(id => form[id] = document.getElementById(id).value);
             form.paymentType = getPaymentType();
             try {
-                sessionStorage.setItem('spgAppState', JSON.stringify({ photos, form }));
+                sessionStorage.setItem('spgAppState', JSON.stringify({ photos, photosOriginais, recortes, form }));
             } catch (e) {
                 console.warn('Erro ao salvar estado (possível limite de memória atingido):', e);
             }
@@ -518,6 +542,9 @@
             if (state) {
                 // Versões antigas guardavam as fotos por aba ({ compra: [], nf: [] })
                 photos = Array.isArray(state.photos) ? state.photos : (state.photos?.compra || []);
+                const originaisOk = Array.isArray(state.photosOriginais) && state.photosOriginais.length === photos.length;
+                photosOriginais = originaisOk ? state.photosOriginais : [...photos];
+                recortes = originaisOk && Array.isArray(state.recortes) ? state.recortes : photos.map(() => null);
                 const form = state.form || {};
                 CAMPOS_SALVOS.forEach(id => { if (form[id]) document.getElementById(id).value = form[id]; });
                 if (form.paymentType) setPaymentType(form.paymentType);
@@ -893,7 +920,10 @@
             for (const file of files) {
                 if (!file.type.startsWith('image/')) continue;
                 try {
-                    photos.push(await processImage(file));
+                    const foto = await processImage(file);
+                    photos.push(foto);
+                    photosOriginais.push(foto);
+                    recortes.push(null);
                 } catch (err) {
                     console.error('Erro ao processar imagem:', err);
                     showMessageModal('Erro ao Carregar Foto', 'Não foi possível processar a imagem. Tente tirar a foto com resolução menor nas configurações da câmera.', 'error');
@@ -911,8 +941,123 @@
 
             // Só a primeira foto é lida pela IA (a segunda costuma ser complemento)
             if (eraPrimeiraFoto && photos.length > 0) {
-                lerComprovanteComIA(photos[0]);
+                lerComprovanteComIA();
             }
+        }
+
+        // ===================== RECORTE DO COMPROVANTE =====================
+        let cropper = null;
+        let cropIndex = -1;
+
+        function carregarImagem(dataUrl) {
+            return new Promise((resolve, reject) => {
+                const img = new Image();
+                img.onload = () => resolve(img);
+                img.onerror = () => reject(new Error('Falha ao carregar imagem'));
+                img.src = dataUrl;
+            });
+        }
+
+        async function cortarImagem(dataUrl, box) {
+            const img = await carregarImagem(dataUrl);
+            const canvas = document.createElement('canvas');
+            canvas.width = Math.round(box.width);
+            canvas.height = Math.round(box.height);
+            canvas.getContext('2d').drawImage(img, box.x, box.y, box.width, box.height, 0, 0, canvas.width, canvas.height);
+            const out = canvas.toDataURL('image/jpeg', 0.85);
+            canvas.width = canvas.height = 0;
+            return out;
+        }
+
+        // A IA devolve a área do comprovante em escala 0–1000; recorta com uma pequena margem.
+        // Não mexe se a pessoa já recortou à mão ou se a caixa parecer errada.
+        async function aplicarRecorteIA(index, caixa) {
+            if (!caixa || recortes[index]) return false;
+            const vals = [caixa.x1, caixa.y1, caixa.x2, caixa.y2].map(Number);
+            if (vals.some(v => !isFinite(v))) return false;
+            let [x1, y1, x2, y2] = vals.map(v => Math.min(Math.max(v, 0), 1000) / 1000);
+            if (x2 < x1) [x1, x2] = [x2, x1];
+            if (y2 < y1) [y1, y2] = [y2, y1];
+            const area = (x2 - x1) * (y2 - y1);
+            if (area < 0.08 || area > 0.92) return false; // Caixa suspeita, ou a foto já mostra só o comprovante
+
+            const MARGEM = 0.02;
+            x1 = Math.max(0, x1 - MARGEM); y1 = Math.max(0, y1 - MARGEM);
+            x2 = Math.min(1, x2 + MARGEM); y2 = Math.min(1, y2 + MARGEM);
+
+            const original = photosOriginais[index];
+            const img = await carregarImagem(original);
+            const w = img.naturalWidth, h = img.naturalHeight;
+            const box = { x: Math.round(x1 * w), y: Math.round(y1 * h), width: Math.round((x2 - x1) * w), height: Math.round((y2 - y1) * h), rotate: 0 };
+            const recortada = await cortarImagem(original, box);
+
+            // A foto pode ter sido trocada ou recortada à mão enquanto processava
+            if (photosOriginais[index] !== original || recortes[index]) return false;
+            photos[index] = recortada;
+            recortes[index] = box;
+            renderPhotoPreviews();
+            saveState();
+            return true;
+        }
+
+        function abrirRecorte(index) {
+            if (typeof Cropper === 'undefined') {
+                showMessageModal('Recorte indisponível', 'Abra o app com internet uma vez para carregar a ferramenta de recorte.', 'error');
+                return;
+            }
+            cropIndex = index;
+            const modal = document.getElementById('cropModal');
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+            document.body.style.overflow = 'hidden';
+            lucide.createIcons();
+
+            // Imagem nova a cada abertura (o Cropper.js mede o espaço ao iniciar)
+            const area = document.getElementById('cropArea');
+            area.innerHTML = '';
+            const img = document.createElement('img');
+            img.className = 'block max-w-full';
+            img.onload = () => {
+                cropper?.destroy();
+                cropper = new Cropper(img, {
+                    viewMode: 1,
+                    dragMode: 'move',
+                    autoCropArea: 0.9,
+                    background: false,
+                    toggleDragModeOnDblclick: false,
+                    ready() { if (recortes[index]) cropper.setData(recortes[index]); }
+                });
+            };
+            img.src = photosOriginais[index];
+            area.appendChild(img);
+        }
+
+        function recorteFotoInteira() {
+            if (!cropper) return;
+            cropper.reset();
+            cropper.setCropBoxData(cropper.getCanvasData());
+        }
+
+        function aplicarRecorte() {
+            if (!cropper || cropIndex < 0) return;
+            const canvas = cropper.getCroppedCanvas({ maxWidth: 2000, maxHeight: 2000, fillColor: '#fff', imageSmoothingQuality: 'high' });
+            photos[cropIndex] = canvas.toDataURL('image/jpeg', 0.85);
+            canvas.width = canvas.height = 0;
+            recortes[cropIndex] = cropper.getData(true);
+            fecharRecorte();
+            renderPhotoPreviews();
+            saveState();
+        }
+
+        function fecharRecorte() {
+            cropper?.destroy();
+            cropper = null;
+            cropIndex = -1;
+            document.getElementById('cropArea').innerHTML = '';
+            const modal = document.getElementById('cropModal');
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+            document.body.style.overflow = '';
         }
 
         // ===================== LEITURA AUTOMÁTICA (GROQ) =====================
@@ -977,7 +1122,7 @@
             const cores = { loading: 'text-brand-700 bg-brand-50 border-brand-200', ok: 'text-green-700 bg-green-50 border-green-200', erro: 'text-red-700 bg-red-50 border-red-200' };
             el.className = `mt-3 text-xs font-bold px-3 py-2 rounded-xl border flex items-center gap-2 ${cores[tipo]}`;
             el.innerHTML = `<span class="flex-1">${escapeHtml(text)}</span>` +
-                (tipo === 'erro' && photos.length ? '<button type="button" onclick="lerComprovanteComIA(photos[0])" class="shrink-0 px-2.5 py-1 rounded-lg bg-white border border-red-200 text-red-700 hover:bg-red-100 active:scale-95 transition-all">Tentar de novo</button>' : '');
+                (tipo === 'erro' && photos.length ? '<button type="button" onclick="lerComprovanteComIA()" class="shrink-0 px-2.5 py-1 rounded-lg bg-white border border-red-200 text-red-700 hover:bg-red-100 active:scale-95 transition-all">Tentar de novo</button>' : '');
         }
 
         function getOpcoes(selectId) {
@@ -1007,7 +1152,9 @@
 
         const esperar = ms => new Promise(r => setTimeout(r, ms));
 
-        async function lerComprovanteComIA(imagemBase64) {
+        // Sempre lê a foto inteira (a área de recorte devolvida é relativa a ela)
+        async function lerComprovanteComIA() {
+            const imagemBase64 = photosOriginais[0];
             if (!imagemBase64) return;
             const key = getGroqKey();
             if (!key) return;
@@ -1018,7 +1165,7 @@
 
             cancelarLeituraIA();
             const minhaLeitura = leituraAtual;
-            const ativa = () => minhaLeitura === leituraAtual && photos[0] === imagemBase64;
+            const ativa = () => minhaLeitura === leituraAtual && photosOriginais[0] === imagemBase64;
 
             setIaStatus('🤖 Lendo comprovante...', 'loading');
 
@@ -1030,7 +1177,8 @@ Responda SOMENTE um JSON com estas chaves (use null quando não conseguir ler):
   "estabelecimento": nome da loja/emitente,
   "forma_pagamento": "Crédito", "Débito" ou "Pix",
   "final_cartao": últimos 4 dígitos do cartão,
-  "parcelas": número de parcelas (1 se à vista)
+  "parcelas": número de parcelas (1 se à vista),
+  "recorte": { "x1": 0, "y1": 0, "x2": 1000, "y2": 1000 } — retângulo que contém só o papel/tela do comprovante na foto, em coordenadas relativas de 0 a 1000 (0,0 = canto superior esquerdo; 1000,1000 = canto inferior direito)
 }
 Se o estabelecimento for um destes, devolva exatamente o nome da lista: ${getOpcoes('establishmentSelect').join('; ')}.`;
 
@@ -1094,7 +1242,12 @@ Se o estabelecimento for um destes, devolva exatamente o nome da lista: ${getOpc
                     const dados = JSON.parse(json.choices[0].message.content);
 
                     preencherComDadosIA(dados);
-                    setIaStatus('✅ Dados preenchidos pela foto. Confira antes de enviar.', 'ok');
+                    let recortou = false;
+                    try { recortou = await aplicarRecorteIA(0, dados.recorte); } catch (e) { console.warn('Recorte automático falhou:', e); }
+                    if (!ativa()) return;
+                    setIaStatus(recortou
+                        ? '✅ Dados preenchidos e foto recortada. Confira antes de enviar.'
+                        : '✅ Dados preenchidos pela foto. Confira antes de enviar.', 'ok');
                     return;
                 } catch (err) {
                     clearTimeout(timer);
@@ -1161,8 +1314,9 @@ Se o estabelecimento for um destes, devolva exatamente o nome da lista: ${getOpc
                 img.onload = function() {
                     URL.revokeObjectURL(url); // Libera a referência imediatamente
 
-                    const MAX_WIDTH = 1280;
-                    const MAX_HEIGHT = 1280;
+                    // Um pouco maior que o necessário para o comprovante continuar legível depois do recorte
+                    const MAX_WIDTH = 1600;
+                    const MAX_HEIGHT = 1600;
                     let width = img.width;
                     let height = img.height;
 
@@ -1177,7 +1331,7 @@ Se o estabelecimento for um destes, devolva exatamente o nome da lista: ${getOpc
                     canvas.height = height;
                     const ctx = canvas.getContext('2d');
                     ctx.drawImage(img, 0, 0, width, height);
-                    const dataUrl = canvas.toDataURL('image/jpeg', 0.75);
+                    const dataUrl = canvas.toDataURL('image/jpeg', 0.8);
                     canvas.width = canvas.height = 0; // Libera a memória do canvas (no Android acumula entre envios)
                     resolve(dataUrl);
                 };
@@ -1203,10 +1357,13 @@ Se o estabelecimento for um destes, devolva exatamente o nome da lista: ${getOpc
             imgContainer.classList.toggle('flex', photos.length > 0);
 
             thumbs.innerHTML = photos.map((photo, index) => `
-                <div class="relative aspect-[3/4] rounded-2xl overflow-hidden border border-slate-200 bg-slate-50 animate-fade-in-down">
-                    <img src="${photo}" class="w-full h-full object-cover">
+                <div class="relative aspect-[3/4] rounded-2xl overflow-hidden border border-slate-200 bg-slate-100 animate-fade-in-down">
+                    <img src="${photo}" class="w-full h-full object-contain">
                     <button type="button" onclick="removePhoto(${index})" class="absolute top-2 right-2 bg-white/90 backdrop-blur text-red-500 rounded-full p-1.5 shadow-md hover:bg-white transition-colors" title="Remover foto">
                         <i data-lucide="x" class="w-4 h-4"></i>
+                    </button>
+                    <button type="button" onclick="abrirRecorte(${index})" class="absolute bottom-2 left-2 flex items-center gap-1 bg-white/90 backdrop-blur text-slate-700 rounded-full px-2.5 py-1.5 text-xs font-bold shadow-md hover:bg-white transition-colors">
+                        <i data-lucide="crop" class="w-3.5 h-3.5"></i> ${recortes[index] ? 'Ajustar' : 'Recortar'}
                     </button>
                 </div>
             `).join('');
@@ -1220,6 +1377,8 @@ Se o estabelecimento for um destes, devolva exatamente o nome da lista: ${getOpc
 
         function removePhoto(index) {
             photos.splice(index, 1);
+            photosOriginais.splice(index, 1);
+            recortes.splice(index, 1);
             if (photos.length === 0) setIaStatus('');
             renderPhotoPreviews();
             saveState();
@@ -1246,10 +1405,13 @@ Se o estabelecimento for um destes, devolva exatamente o nome da lista: ${getOpc
                 input.disabled = false;
             });
             closePicker();
+            fecharRecorte();
 
             document.getElementById('receiptForm').reset();
 
             photos = [];
+            photosOriginais = [];
+            recortes = [];
             renderPhotoPreviews();
             setIaStatus('');
 
