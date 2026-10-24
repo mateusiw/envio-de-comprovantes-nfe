@@ -231,6 +231,8 @@
                                 <span>Galeria</span>
                             </button>
                         </div>
+                        <!-- Status da leitura automática pela IA -->
+                        <p id="iaStatus" class="hidden"></p>
                         <!-- Campo oculto para validação HTML5 -->
                         <input type="text" id="photoValidation" required class="hidden" tabindex="-1" aria-hidden="true">
                     </div>
@@ -651,6 +653,7 @@
             document.getElementById('photoUpload').value = '';
             document.getElementById('cameraCapture').value = '';
             renderPhotoPreviews(); // Mostrará apenas as fotos vinculadas à aba atual
+            setIaStatus('');
             
             lucide.createIcons();
             updatePreview();
@@ -857,6 +860,7 @@
                 return;
             }
 
+            const eraPrimeiraFoto = photosData[currentMode].length === 0;
             const uploadBtn = document.getElementById('photoUpload');
             const cameraBtn = document.getElementById('cameraCapture');
             uploadBtn.disabled = true;
@@ -880,6 +884,149 @@
             cameraBtn.disabled = false;
 
             renderPhotoPreviews();
+            updatePreview();
+            saveState();
+
+            // Só a primeira foto é lida pela IA (a segunda costuma ser complemento)
+            if (eraPrimeiraFoto && photosData[currentMode].length > 0) {
+                lerComprovanteComIA(photosData[currentMode][0]);
+            }
+        }
+
+        // ===================== LEITURA AUTOMÁTICA (GROQ) =====================
+        // A chave fica salva só neste aparelho (localStorage), nunca no código
+        const GROQ_MODEL = 'qwen/qwen3.8-27b';
+        const GROQ_KEY_STORAGE = 'spgGroqKey';
+
+        function getGroqKey() {
+            let key = '';
+            try { key = localStorage.getItem(GROQ_KEY_STORAGE) || ''; } catch (e) {}
+            if (key) return key;
+            key = (prompt('Cole sua chave da Groq (começa com "gsk_") para preencher os dados automaticamente pela foto.\nEla fica salva só neste aparelho.') || '').trim();
+            if (key) {
+                try { localStorage.setItem(GROQ_KEY_STORAGE, key); } catch (e) {}
+            }
+            return key;
+        }
+
+        function setIaStatus(text, tipo) {
+            const el = document.getElementById('iaStatus');
+            if (!text) { el.classList.add('hidden'); return; }
+            const cores = { loading: 'text-brand-700 bg-brand-50 border-brand-200', ok: 'text-green-700 bg-green-50 border-green-200', erro: 'text-red-700 bg-red-50 border-red-200' };
+            el.className = `mt-2 text-xs font-bold px-3 py-2 rounded-lg border flex items-center gap-2 ${cores[tipo]}`;
+            el.innerText = text;
+        }
+
+        function getOpcoes(selectId) {
+            return Array.from(document.getElementById(selectId).options).map(o => o.value).filter(v => v && v !== 'Outro');
+        }
+
+        async function lerComprovanteComIA(imagemBase64) {
+            if (!navigator.onLine) return; // Sem sinal: preenchimento manual normal
+            const key = getGroqKey();
+            if (!key) return;
+
+            const modo = currentMode;
+            const isNF = modo === 'nf';
+            setIaStatus('🤖 Lendo comprovante...', 'loading');
+
+            const instrucoes = `Você lê fotos de ${isNF ? 'notas fiscais (DANFE/NF-e) de entrega' : 'comprovantes de compra brasileiros (cupom fiscal, NFC-e ou comprovante de maquininha)'}.
+Responda SOMENTE um JSON com estas chaves (use null quando não conseguir ler):
+{
+  "data": "AAAA-MM-DD",
+  "valor": número com o valor total pago (ex: 1234.56),
+  "estabelecimento": nome ${isNF ? 'do cliente/destinatário' : 'da loja/emitente'},
+  "numero_nf": número da nota fiscal,
+  "forma_pagamento": "Crédito" ou "Débito",
+  "final_cartao": últimos 4 dígitos do cartão,
+  "parcelas": número de parcelas (1 se à vista)
+}
+Se o ${isNF ? 'cliente' : 'estabelecimento'} for um destes, devolva exatamente o nome da lista: ${getOpcoes('establishmentSelect').join('; ')}.`;
+
+            try {
+                const resp = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${key}` },
+                    body: JSON.stringify({
+                        model: GROQ_MODEL,
+                        temperature: 0,
+                        reasoning_effort: 'none',
+                        response_format: { type: 'json_object' },
+                        messages: [{
+                            role: 'user',
+                            content: [
+                                { type: 'text', text: instrucoes },
+                                { type: 'image_url', image_url: { url: imagemBase64 } }
+                            ]
+                        }]
+                    })
+                });
+
+                if (resp.status === 401) {
+                    try { localStorage.removeItem(GROQ_KEY_STORAGE); } catch (e) {}
+                    setIaStatus('Chave da Groq inválida. Tire a foto de novo para digitar outra.', 'erro');
+                    return;
+                }
+                if (!resp.ok) throw new Error(`Groq respondeu ${resp.status}: ${await resp.text()}`);
+
+                const json = await resp.json();
+                const dados = JSON.parse(json.choices[0].message.content);
+
+                // Usuário trocou de aba enquanto lia: não mistura os dados
+                if (currentMode !== modo) { setIaStatus(''); return; }
+
+                preencherComDadosIA(dados, isNF);
+                setIaStatus('✅ Dados preenchidos pela foto. Confira antes de enviar.', 'ok');
+            } catch (err) {
+                console.error('Erro na leitura pela IA:', err);
+                setIaStatus('Não consegui ler o comprovante. Preencha manualmente.', 'erro');
+            }
+        }
+
+        // Preenche só o que está vazio (a data sempre vem da foto, pois o padrão é "hoje")
+        function preencherComDadosIA(d, isNF) {
+            const vazio = id => !document.getElementById(id).value;
+
+            if (d.data && /^\d{4}-\d{2}-\d{2}$/.test(d.data)) {
+                document.getElementById('purchaseDate').value = d.data;
+            }
+
+            if (d.estabelecimento && vazio('establishmentSelect')) {
+                const nome = String(d.estabelecimento).trim();
+                const opcao = getOpcoes('establishmentSelect').find(o => o.toLowerCase() === nome.toLowerCase());
+                document.getElementById('establishmentSelect').value = opcao || 'Outro';
+                if (!opcao) document.getElementById('customEstablishmentName').value = nome;
+                handleEstablishmentChange();
+            }
+
+            if (isNF) {
+                if (d.numero_nf && vazio('nfNumber')) document.getElementById('nfNumber').value = String(d.numero_nf);
+            } else {
+                const valor = parseFloat(String(d.valor ?? '').replace(',', '.'));
+                if (valor > 0 && vazio('purchaseAmount')) {
+                    const input = document.getElementById('purchaseAmount');
+                    input.value = String(Math.round(valor * 100));
+                    formatCurrency(input);
+                }
+
+                if ((d.forma_pagamento === 'Crédito' || d.forma_pagamento === 'Débito') && vazio('paymentType')) {
+                    document.getElementById('paymentType').value = d.forma_pagamento;
+                    handlePaymentChange();
+                    const parcelas = parseInt(d.parcelas, 10);
+                    if (d.forma_pagamento === 'Crédito' && parcelas >= 2 && parcelas <= 12) {
+                        document.getElementById('installments').value = `${parcelas}x`;
+                    }
+                }
+
+                const final = String(d.final_cartao ?? '').replace(/\D/g, '').slice(-4);
+                if (final.length === 4 && vazio('cardLastDigits')) {
+                    const opcao = getOpcoes('cardLastDigits').find(o => o.startsWith(final));
+                    document.getElementById('cardLastDigits').value = opcao || 'Outro';
+                    if (!opcao) document.getElementById('customCardName').value = `Final ${final}`;
+                    handleCardChange();
+                }
+            }
+
             updatePreview();
             saveState();
         }
@@ -979,7 +1126,8 @@
             // Limpa as fotos APENAS da aba atual
             photosData[currentMode] = [];
             renderPhotoPreviews();
-            
+            setIaStatus('');
+
             const dateInput = document.getElementById('purchaseDate');
             const today = new Date();
             const yyyy = today.getFullYear();
