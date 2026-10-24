@@ -1,12 +1,14 @@
 // Service worker: guarda o app e as bibliotecas para abrir sem internet.
 // Ao mudar a lista abaixo ou quiser forçar atualização do cache, troque a versão.
-const CACHE = 'spg-app-v5';
+const CACHE = 'spg-app-v6';
 
 const PRECACHE_LOCAL = ['./', './index.html'];
 const PRECACHE_CDN = [
     'https://cdn.tailwindcss.com',
     'https://unpkg.com/lucide@latest',
-    'https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js'
+    'https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js',
+    'https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.2/cropper.min.css',
+    'https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.2/cropper.min.js'
 ];
 
 // Com sinal fraco, não espera a rede para sempre: depois disso usa a cópia guardada
