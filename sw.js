@@ -1,6 +1,6 @@
 // Service worker: guarda o app e as bibliotecas para abrir sem internet.
 // Ao mudar a lista abaixo ou quiser forçar atualização do cache, troque a versão.
-const CACHE = 'spg-app-v2';
+const CACHE = 'spg-app-v4';
 
 const PRECACHE_LOCAL = ['./', './index.html'];
 const PRECACHE_CDN = [
