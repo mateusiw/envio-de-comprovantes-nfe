@@ -970,22 +970,55 @@
             showMessageModal('Configurações salvas', key ? 'Leitura automática do comprovante ativada.' : 'Leitura automática desativada.', 'success');
         }
 
+        // No erro, mostra o botão "Tentar de novo" para não precisar fechar o app
         function setIaStatus(text, tipo) {
             const el = document.getElementById('iaStatus');
-            if (!text) { el.className = 'hidden'; return; }
+            if (!text) { el.className = 'hidden'; el.innerHTML = ''; return; }
             const cores = { loading: 'text-brand-700 bg-brand-50 border-brand-200', ok: 'text-green-700 bg-green-50 border-green-200', erro: 'text-red-700 bg-red-50 border-red-200' };
             el.className = `mt-3 text-xs font-bold px-3 py-2 rounded-xl border flex items-center gap-2 ${cores[tipo]}`;
-            el.innerText = text;
+            el.innerHTML = `<span class="flex-1">${escapeHtml(text)}</span>` +
+                (tipo === 'erro' && photos.length ? '<button type="button" onclick="lerComprovanteComIA(photos[0])" class="shrink-0 px-2.5 py-1 rounded-lg bg-white border border-red-200 text-red-700 hover:bg-red-100 active:scale-95 transition-all">Tentar de novo</button>' : '');
         }
 
         function getOpcoes(selectId) {
             return Array.from(document.getElementById(selectId).options).map(o => o.value).filter(v => v && v !== 'Outro');
         }
 
+        // Cada leitura ganha um número; limpar o formulário ou começar outra leitura descarta a anterior
+        const GROQ_TIMEOUT_MS = 45000;
+        const GROQ_MAX_TENTATIVAS = 3;
+        let leituraAtual = 0;
+        let leituraController = null;
+
+        function cancelarLeituraIA() {
+            leituraAtual++;
+            leituraController?.abort();
+            leituraController = null;
+        }
+
+        // Quanto esperar no limite de uso (429): usa o "retry-after" da Groq, ou o "try again in Xs" da mensagem
+        function segundosParaTentarDeNovo(resp, corpo) {
+            const header = parseFloat(resp.headers.get('retry-after'));
+            if (header > 0) return Math.ceil(header);
+            const m = corpo.match(/try again in (?:(\d+)m)?([\d.]+)s/i);
+            if (m) return Math.ceil((parseInt(m[1] || '0', 10) * 60) + parseFloat(m[2]));
+            return 10;
+        }
+
+        const esperar = ms => new Promise(r => setTimeout(r, ms));
+
         async function lerComprovanteComIA(imagemBase64) {
-            if (!navigator.onLine) return; // Sem sinal: preenchimento manual normal
+            if (!imagemBase64) return;
             const key = getGroqKey();
             if (!key) return;
+            if (!navigator.onLine) {
+                setIaStatus('Sem internet para ler o comprovante. Preencha manualmente.', 'erro');
+                return;
+            }
+
+            cancelarLeituraIA();
+            const minhaLeitura = leituraAtual;
+            const ativa = () => minhaLeitura === leituraAtual && photos[0] === imagemBase64;
 
             setIaStatus('🤖 Lendo comprovante...', 'loading');
 
@@ -1001,42 +1034,79 @@ Responda SOMENTE um JSON com estas chaves (use null quando não conseguir ler):
 }
 Se o estabelecimento for um destes, devolva exatamente o nome da lista: ${getOpcoes('establishmentSelect').join('; ')}.`;
 
-            try {
-                const resp = await fetch('https://api.groq.com/openai/v1/chat/completions', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${key}` },
-                    body: JSON.stringify({
-                        model: GROQ_MODEL,
-                        temperature: 0,
-                        reasoning_effort: 'none',
-                        response_format: { type: 'json_object' },
-                        messages: [{
-                            role: 'user',
-                            content: [
-                                { type: 'text', text: instrucoes },
-                                { type: 'image_url', image_url: { url: imagemBase64 } }
-                            ]
-                        }]
-                    })
-                });
+            const body = JSON.stringify({
+                model: GROQ_MODEL,
+                temperature: 0,
+                reasoning_effort: 'none',
+                response_format: { type: 'json_object' },
+                messages: [{
+                    role: 'user',
+                    content: [
+                        { type: 'text', text: instrucoes },
+                        { type: 'image_url', image_url: { url: imagemBase64 } }
+                    ]
+                }]
+            });
 
-                if (resp.status === 401) {
-                    setIaStatus('Chave da Groq inválida. Troque a chave na engrenagem ⚙️.', 'erro');
+            for (let tentativa = 1; tentativa <= GROQ_MAX_TENTATIVAS; tentativa++) {
+                const controller = new AbortController();
+                leituraController = controller;
+                const timer = setTimeout(() => controller.abort(), GROQ_TIMEOUT_MS);
+                try {
+                    const resp = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${key}` },
+                        body,
+                        signal: controller.signal
+                    });
+                    clearTimeout(timer);
+                    if (!ativa()) return;
+
+                    if (resp.status === 401) {
+                        setIaStatus('Chave da Groq inválida. Troque a chave na engrenagem ⚙️.', 'erro');
+                        return;
+                    }
+
+                    // Limite de uso da Groq (comum ao ler vários comprovantes seguidos): espera e tenta sozinho
+                    if (resp.status === 429 && tentativa < GROQ_MAX_TENTATIVAS) {
+                        const segundos = Math.min(segundosParaTentarDeNovo(resp, await resp.text()), 60);
+                        for (let s = segundos; s > 0; s--) {
+                            if (!ativa()) return;
+                            setIaStatus(`⏳ Limite da Groq atingido. Tentando de novo em ${s}s...`, 'loading');
+                            await esperar(1000);
+                        }
+                        if (!ativa()) return;
+                        setIaStatus('🤖 Lendo comprovante...', 'loading');
+                        continue;
+                    }
+
+                    if (!resp.ok) {
+                        const corpo = await resp.text();
+                        console.error('Groq respondeu', resp.status, corpo);
+                        setIaStatus(resp.status === 429
+                            ? 'Limite da Groq atingido. Aguarde um minuto e toque em "Tentar de novo".'
+                            : `Não consegui ler o comprovante (erro ${resp.status}).`, 'erro');
+                        return;
+                    }
+
+                    const json = await resp.json();
+                    if (!ativa()) return;
+                    const dados = JSON.parse(json.choices[0].message.content);
+
+                    preencherComDadosIA(dados);
+                    setIaStatus('✅ Dados preenchidos pela foto. Confira antes de enviar.', 'ok');
                     return;
+                } catch (err) {
+                    clearTimeout(timer);
+                    if (!ativa()) return; // Cancelada (formulário limpo ou outra leitura começou)
+                    console.error('Erro na leitura pela IA:', err);
+                    setIaStatus(err.name === 'AbortError'
+                        ? 'A leitura demorou demais. Toque em "Tentar de novo".'
+                        : 'Não consegui ler o comprovante. Preencha manualmente ou tente de novo.', 'erro');
+                    return;
+                } finally {
+                    if (leituraController === controller) leituraController = null;
                 }
-                if (!resp.ok) throw new Error(`Groq respondeu ${resp.status}: ${await resp.text()}`);
-
-                const json = await resp.json();
-                const dados = JSON.parse(json.choices[0].message.content);
-
-                // Formulário foi limpo enquanto lia: não preenche
-                if (photos[0] !== imagemBase64) { setIaStatus(''); return; }
-
-                preencherComDadosIA(dados);
-                setIaStatus('✅ Dados preenchidos pela foto. Confira antes de enviar.', 'ok');
-            } catch (err) {
-                console.error('Erro na leitura pela IA:', err);
-                setIaStatus('Não consegui ler o comprovante. Preencha manualmente.', 'erro');
             }
         }
 
@@ -1107,7 +1177,9 @@ Se o estabelecimento for um destes, devolva exatamente o nome da lista: ${getOpc
                     canvas.height = height;
                     const ctx = canvas.getContext('2d');
                     ctx.drawImage(img, 0, 0, width, height);
-                    resolve(canvas.toDataURL('image/jpeg', 0.75));
+                    const dataUrl = canvas.toDataURL('image/jpeg', 0.75);
+                    canvas.width = canvas.height = 0; // Libera a memória do canvas (no Android acumula entre envios)
+                    resolve(dataUrl);
                 };
                 img.onerror = () => {
                     URL.revokeObjectURL(url);
@@ -1164,6 +1236,17 @@ Se o estabelecimento for um destes, devolva exatamente o nome da lista: ${getOpc
         }
 
         function executeClear() {
+            // Zera tudo que pode ter ficado pendurado do envio anterior
+            cancelarLeituraIA();
+            isProcessingShare = false;
+            document.getElementById('sendBtnText').innerText = 'Enviar no WhatsApp';
+            ['photoUpload', 'cameraCapture'].forEach(id => {
+                const input = document.getElementById(id);
+                input.value = '';
+                input.disabled = false;
+            });
+            closePicker();
+
             document.getElementById('receiptForm').reset();
 
             photos = [];
@@ -1211,7 +1294,9 @@ Se o estabelecimento for um destes, devolva exatamente o nome da lista: ${getOpc
                                 currentY += img.height;
                             });
 
-                            resolve(canvas.toDataURL('image/jpeg', 1.0));
+                            const dataUrl = canvas.toDataURL('image/jpeg', 1.0);
+                            canvas.width = canvas.height = 0; // Libera a memória do canvas
+                            resolve(dataUrl);
                         }
                     };
                     img.src = base64;
