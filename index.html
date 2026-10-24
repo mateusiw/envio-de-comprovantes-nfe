@@ -49,153 +49,211 @@
         input, select, textarea { line-height: 1.5; }
         .animate-fade-in-down { animation: fadeInDown 0.3s ease-out forwards; }
         @keyframes fadeInDown { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* Componentes do formulário */
+        .card { background: #fff; border: 1px solid #e2e8f0; border-radius: 1.25rem; padding: 1.25rem; box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04); }
+        .section-title { display: flex; align-items: center; gap: 0.5rem; font-size: 0.95rem; font-weight: 800; color: #1e293b; margin-bottom: 1rem; }
+        .step { width: 1.5rem; height: 1.5rem; border-radius: 9999px; background: #dfe8e4; color: #3d4f46; font-size: 0.75rem; font-weight: 900; display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; }
+        .field-label { display: block; font-size: 0.75rem; font-weight: 700; color: #64748b; margin-bottom: 0.375rem; }
+        .field { width: 100%; min-height: 3rem; padding: 0.75rem 0.875rem; border: 1px solid #e2e8f0; border-radius: 0.875rem; background-color: #f8fafc; font-size: 0.9rem; font-weight: 600; color: #1e293b; outline: none; transition: border-color .15s, box-shadow .15s, background-color .15s; -webkit-appearance: none; appearance: none; }
+        .field::placeholder { color: #94a3b8; font-weight: 500; }
+        .field:focus { border-color: #759587; background-color: #fff; box-shadow: 0 0 0 4px rgba(117, 149, 135, 0.18); }
+        select.field { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2364748b' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 0.875rem center; background-size: 1rem; padding-right: 2.5rem; }
+        .seg span { display: flex; align-items: center; justify-content: center; gap: 0.5rem; padding: 0.7rem; border-radius: 0.875rem; font-size: 0.9rem; font-weight: 700; color: #64748b; cursor: pointer; transition: all .15s; }
+        .seg input:checked + span { background: #fff; color: #3d4f46; box-shadow: 0 1px 3px rgba(15, 23, 42, 0.12); }
+        .seg input:focus-visible + span { outline: 2px solid #759587; }
+        .photo-tile { display: flex; flex-direction: column; align-items: center; gap: 0.5rem; padding: 1.1rem 0.5rem; border: 2px dashed #bfd1c9; border-radius: 1rem; background: #f2f6f4; transition: all .15s; }
+        .photo-tile:hover { border-color: #759587; background: #dfe8e4; }
+        .photo-tile:active { transform: scale(0.97); }
+        .icon-btn { display: flex; align-items: center; justify-content: center; width: 2.5rem; height: 2.5rem; border-radius: 0.75rem; background: #f1f5f9; color: #475569; transition: all .15s; }
+        .icon-btn:hover { background: #e2e8f0; }
+        .icon-btn:active { transform: scale(0.95); }
+        /* Seletores modernos (substituem a lista nativa do <select>) */
+        select.picker-native { position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0; pointer-events: none; }
+        .picker-trigger { display: flex; align-items: center; gap: 0.6rem; text-align: left; cursor: pointer; }
+        .picker-trigger:hover { border-color: #bfd1c9; }
+        .picker-search { padding-left: 2.5rem; min-height: 2.75rem; }
+        .picker-sheet { position: fixed; left: 0; right: 0; bottom: 0; max-height: 75vh; display: flex; flex-direction: column; background: #fff; border-radius: 1.5rem 1.5rem 0 0; padding: 0.75rem 1rem max(1rem, env(safe-area-inset-bottom)); box-shadow: 0 -12px 32px rgba(15, 23, 42, 0.18); animation: sheetUp .22s ease-out; }
+        .picker-pop { position: fixed; display: flex; flex-direction: column; background: #fff; border: 1px solid #e2e8f0; border-radius: 1rem; padding: 0.5rem; box-shadow: 0 16px 40px rgba(15, 23, 42, 0.16); animation: fadeInDown .15s ease-out; }
+        .picker-option { display: flex; align-items: center; gap: 0.75rem; width: 100%; padding: 0.55rem 0.6rem; border-radius: 0.875rem; font-size: 0.9rem; font-weight: 700; color: #1e293b; transition: background-color .1s; }
+        .picker-option:hover { background: #f1f5f9; }
+        .picker-option.is-selected { background: #f2f6f4; color: #3d4f46; }
+        .picker-avatar { width: 2.25rem; height: 2.25rem; border-radius: 0.75rem; background: #dfe8e4; color: #3d4f46; font-size: 0.75rem; font-weight: 900; display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; }
+        @keyframes sheetUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+        .preview-label { font-size: 10px; color: #94a3b8; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.25rem; }
+        .preview-value { font-size: 0.875rem; font-weight: 700; color: #334155; display: flex; align-items: center; gap: 0.375rem; min-width: 0; }
     </style>
 </head>
-<body class="bg-slate-100 text-slate-800 min-h-screen pb-20 select-none">
+<body class="bg-slate-100 text-slate-800 min-h-screen pb-28 select-none">
 
     <!-- Navbar -->
-    <div class="bg-white border-b border-slate-200 px-4 py-3 flex justify-between items-center shadow-sm sticky top-0 z-40">
-        <div class="flex items-center gap-3">
-            <div class="w-8 h-8 rounded-lg shadow-sm border border-slate-100 bg-brand-50 flex items-center justify-center">
-                <i data-lucide="receipt" class="w-5 h-5 text-brand-600"></i>
+    <header class="bg-white/80 backdrop-blur-md border-b border-slate-200/70 px-4 py-3 sticky top-0 z-40">
+        <div class="container mx-auto max-w-6xl flex justify-between items-center">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-brand-500 to-brand-700 flex items-center justify-center shadow-md shadow-brand-500/30">
+                    <i data-lucide="credit-card" class="w-5 h-5 text-white"></i>
+                </div>
+                <div>
+                    <h1 class="text-base font-black text-slate-800 leading-tight">Comprovantes SPG</h1>
+                    <p class="text-[11px] text-slate-500 font-semibold">Registro de compras</p>
+                </div>
             </div>
-            <div>
-                <h1 class="text-sm font-bold text-slate-800 leading-tight">SPG FINANCEIRO</h1>
-                <p class="text-[10px] text-brand-600 font-bold uppercase tracking-wide">Controle e Envios</p>
+            <div class="flex gap-2">
+                <button type="button" onclick="showSettingsModal()" class="icon-btn" title="Configurações">
+                    <i data-lucide="settings" class="w-5 h-5"></i>
+                </button>
+                <button type="button" onclick="showClearConfirmModal()" class="icon-btn" title="Limpar formulário">
+                    <i data-lucide="trash-2" class="w-5 h-5 text-red-500"></i>
+                </button>
             </div>
         </div>
-        <div class="flex gap-2">
-            <button type="button" onclick="showClearConfirmModal()" class="flex items-center justify-center p-2 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-lg text-xs font-bold transition-all active:scale-95" title="Limpar Formulário">
-                <i data-lucide="trash-2" class="w-4 h-4 text-red-500"></i>
-            </button>
-            <button type="button" onclick="confirmBeforeSend()" class="flex items-center gap-2 px-4 py-2 bg-brand-500 hover:bg-brand-600 text-white rounded-lg text-xs font-bold shadow-lg shadow-brand-500/20 transition-all active:scale-95 active:bg-brand-700">
-                <i data-lucide="share-2" class="w-4 h-4"></i>
-                <span class="hidden sm:inline">Enviar Registro</span>
-                <span class="sm:hidden">Enviar</span>
-            </button>
-        </div>
-    </div>
+    </header>
 
-    <!-- SELETOR DE MODO -->
-    <div class="container mx-auto px-4 mt-4">
-        <div class="w-full lg:w-1/2 bg-slate-200/70 p-1.5 rounded-xl flex gap-1 shadow-inner">
-            <button type="button" id="btnModeCompra" onclick="setMode('compra')" class="flex-1 py-2.5 px-2 text-sm font-black rounded-lg bg-white shadow-sm text-brand-600 transition-all border border-slate-200/50">
-                💳 Compras
-            </button>
-            <button type="button" id="btnModeNF" onclick="setMode('nf')" class="flex-1 py-2.5 px-2 text-sm font-bold rounded-lg text-slate-500 hover:text-slate-700 hover:bg-slate-300/50 transition-all">
-                📄 Notas Fiscais
-            </button>
-        </div>
-    </div>
-
-    <div id="financeView" class="container mx-auto p-4 flex flex-col lg:flex-row gap-8">
+    <main class="container mx-auto max-w-6xl p-4 flex flex-col lg:flex-row gap-6">
 
         <!-- COLUNA DA ESQUERDA: FORMULÁRIO -->
-        <div class="w-full lg:w-1/2 space-y-4">
+        <form id="receiptForm" class="w-full lg:w-1/2 space-y-4" onsubmit="return false">
 
-            <!-- DADOS DO REGISTRO -->
-            <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
-                <h2 class="text-lg font-bold text-slate-800 flex items-center gap-2 mb-4 border-b border-slate-100 pb-3">
-                    <i data-lucide="shopping-cart" id="formIcon" class="text-brand-500"></i> <span id="formTitleText">Dados da Compra</span>
-                </h2>
-                
-                <form id="receiptForm" class="space-y-4">
-                    
+            <!-- 1. FOTO -->
+            <section class="card">
+                <div class="section-title">
+                    <span class="step">1</span> Foto do comprovante
+                    <span id="photoCounter" class="ml-auto text-[11px] text-brand-700 font-bold bg-brand-50 px-2 py-0.5 rounded-full">0/2</span>
+                </div>
+                <!-- Inputs ocultos -->
+                <input type="file" id="photoUpload" accept="image/*" multiple class="hidden" onchange="handleImageUpload(event)">
+                <input type="file" id="cameraCapture" accept="image/*" capture="environment" class="hidden" onchange="handleImageUpload(event)">
+
+                <div id="photoThumbs" class="grid grid-cols-2 gap-3 mb-3 hidden"></div>
+
+                <div id="photoButtons" class="grid grid-cols-2 gap-3">
+                    <button type="button" onclick="document.getElementById('cameraCapture').click()" class="photo-tile">
+                        <span class="w-11 h-11 rounded-full bg-brand-600 text-white flex items-center justify-center shadow-md shadow-brand-600/30">
+                            <i data-lucide="camera" class="w-5 h-5"></i>
+                        </span>
+                        <span class="text-sm font-bold text-slate-700">Câmera</span>
+                    </button>
+                    <button type="button" onclick="document.getElementById('photoUpload').click()" class="photo-tile">
+                        <span class="w-11 h-11 rounded-full bg-white border border-slate-200 text-brand-700 flex items-center justify-center">
+                            <i data-lucide="image" class="w-5 h-5"></i>
+                        </span>
+                        <span class="text-sm font-bold text-slate-700">Galeria</span>
+                    </button>
+                </div>
+
+                <p id="iaHint" class="text-[11px] text-slate-400 font-medium mt-3 flex items-center gap-1">
+                    <i data-lucide="sparkles" class="w-3 h-3 shrink-0"></i> Configure a chave da Groq na engrenagem para preencher os dados pela foto.
+                </p>
+                <!-- Status da leitura automática pela IA -->
+                <p id="iaStatus" class="hidden"></p>
+            </section>
+
+            <!-- 2. VALOR -->
+            <section class="card">
+                <label for="purchaseAmount" class="section-title"><span class="step">2</span> Valor da compra</label>
+                <div class="flex items-baseline gap-2 border-b-2 border-slate-200 focus-within:border-brand-500 transition-colors pb-1">
+                    <span class="text-2xl font-black text-slate-400">R$</span>
+                    <input type="text" inputmode="numeric" id="purchaseAmount" placeholder="0,00" required oninput="formatCurrency(this); updatePreview()" class="w-full min-w-0 text-4xl font-black text-slate-800 bg-transparent outline-none placeholder:text-slate-300">
+                </div>
+            </section>
+
+            <!-- 3. DETALHES -->
+            <section class="card">
+                <div class="section-title"><span class="step">3</span> Detalhes da compra</div>
+                <div class="space-y-4">
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div>
-                            <label id="lblDate" class="text-xs font-bold text-slate-500 uppercase mb-1 block">Data da Compra</label>
-                            <input type="date" id="purchaseDate" required onchange="updatePreview()" class="w-full p-2 border border-slate-300 rounded-lg text-sm bg-white focus:ring-2 focus:ring-brand-500 outline-none font-bold">
+                            <label for="purchaseDate" class="field-label">Data</label>
+                            <input type="date" id="purchaseDate" required onchange="updatePreview()" class="field">
                         </div>
-                        <div id="amountContainer">
-                            <label class="text-xs font-bold text-slate-500 uppercase mb-1 block">Valor da Compra (R$)</label>
-                            <input type="text" inputmode="numeric" id="purchaseAmount" placeholder="0,00" required oninput="formatCurrency(this); updatePreview()" class="w-full p-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand-500 outline-none text-sm bg-white font-bold">
-                        </div>
-                        <div id="nfContainer" class="hidden">
-                            <label class="text-xs font-bold text-slate-500 uppercase mb-1 block">Número da NF (Opcional)</label>
-                            <input type="text" id="nfNumber" placeholder="Ex: 001234" oninput="updatePreview()" class="w-full p-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand-500 outline-none text-sm bg-white font-bold">
+                        <div>
+                            <label for="establishmentSelect" class="field-label">Estabelecimento</label>
+                            <select id="establishmentSelect" data-picker="store" required onchange="handleEstablishmentChange()" class="field">
+                                <option value="">Selecione...</option>
+                                <option value="Mercantil">Mercantil</option>
+                                <option value="Americanas">Americanas</option>
+                                <option value="Late & Mia - Clínica Veterinária">Late & Mia - Clínica Veterinária</option>
+                                <option value="Águia Dourada Pet Shop">Águia Dourada Pet Shop</option>
+                                <option value="Casa do Trator">Casa do Trator</option>
+                                <option value="Cequip">Cequip</option>
+                                <option value="Casa de Variedades">Casa de Variedades</option>
+                                <option value="Adrovando">Adrovando</option>
+                                <option value="Posto de Combustível">Posto de Combustível</option>
+                                <option value="Restaurante">Restaurante</option>
+                                <option value="Pousada">Pousada</option>
+                                <option value="Pedágio">Pedágio</option>
+                                <option value="Uber">Uber</option>
+                                <option value="Passagem de Ônibus">Passagem de Ônibus</option>
+                                <option value="Serviços de Internet">Serviços de Internet</option>
+                                <option value="Mercado Livre">Mercado Livre</option>
+                                <option value="Outro">Outro (digitar)</option>
+                            </select>
+                            <div id="customEstablishmentContainer" class="hidden mt-2 animate-fade-in-down">
+                                <input type="text" id="customEstablishmentName" placeholder="Nome do estabelecimento" oninput="updatePreview()" class="field">
+                            </div>
                         </div>
                     </div>
 
                     <div>
-                        <label id="lblEstablishment" class="text-xs font-bold text-slate-500 uppercase mb-1 block">Estabelecimento (Loja/Fornecedor)</label>
-                        <select id="establishmentSelect" required onchange="handleEstablishmentChange()" class="w-full p-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand-500 outline-none text-sm bg-white font-bold">
+                        <label for="purchasePurpose" class="field-label">Destino / Motivo</label>
+                        <input type="text" id="purchasePurpose" placeholder="Ex: Abastecimento do caminhão, material de escritório..." required oninput="updatePreview()" class="field">
+                    </div>
+
+                    <div>
+                        <label for="userSelect" id="lblUser" class="field-label">Quem usou o cartão?</label>
+                        <select id="userSelect" data-picker="user" required onchange="handleUserChange()" class="field">
                             <option value="">Selecione...</option>
-                            <option value="Mercantil">Mercantil</option>
-                            <option value="Americanas">Americanas</option>
-                            <option value="Late & Mia - Clínica Veterinária">Late & Mia - Clínica Veterinária</option>
-                            <option value="Águia Dourada Pet Shop">Águia Dourada Pet Shop</option>
-                            <option value="Casa do Trator">Casa do Trator</option>
-                            <option value="Cequip">Cequip</option>
-                            <option value="Casa de Variedades">Casa de Variedades</option>
-                            <option value="Adrovando">Adrovando</option>
-                            <option value="Posto de Combustível">Posto de Combustível</option>
-                            <option value="Restaurante">Restaurante</option>
-                            <option value="Pousada">Pousada</option>
-                            <option value="Pedágio">Pedágio</option>
-                            <option value="Uber">Uber</option>
-                            <option value="Passagem de Ônibus">Passagem de Ônibus</option>
-                            <option value="Serviços de Internet">Serviços de Internet</option>
-                            <option value="Mercado Livre">Mercado Livre</option>
-                            <option value="Outro">Outro (Digitar manualmente)</option>
+                            <option value="Mateus Paulo">Mateus Paulo</option>
+                            <option value="Assis Paulo">Assis Paulo</option>
+                            <option value="Tatiany Rocha">Tatiany Rocha</option>
+                            <option value="Outro">Outro (digitar)</option>
                         </select>
-                        
-                        <div id="customEstablishmentContainer" class="hidden mt-2 animate-fade-in-down">
-                            <input type="text" id="customEstablishmentName" placeholder="Digite o nome..." oninput="updatePreview()" class="w-full p-2 border border-brand-300 bg-brand-50 rounded-lg text-sm focus:ring-2 focus:ring-brand-500 outline-none text-slate-700">
+                        <div id="customUserContainer" class="hidden mt-2 animate-fade-in-down">
+                            <input type="text" id="customUserName" placeholder="Nome de quem usou" oninput="updatePreview()" class="field">
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 4. PAGAMENTO -->
+            <section class="card">
+                <div class="section-title"><span class="step">4</span> Pagamento</div>
+                <div class="space-y-4">
+                    <div>
+                        <span class="field-label">Forma de pagamento</span>
+                        <div class="grid grid-cols-3 gap-1 p-1 bg-slate-100 rounded-2xl">
+                            <label class="seg">
+                                <input type="radio" name="paymentType" value="Crédito" required onchange="handlePaymentChange()" class="sr-only">
+                                <span><i data-lucide="credit-card" class="w-4 h-4"></i> Crédito</span>
+                            </label>
+                            <label class="seg">
+                                <input type="radio" name="paymentType" value="Débito" required onchange="handlePaymentChange()" class="sr-only">
+                                <span><i data-lucide="wallet" class="w-4 h-4"></i> Débito</span>
+                            </label>
+                            <label class="seg">
+                                <input type="radio" name="paymentType" value="Pix" required onchange="handlePaymentChange()" class="sr-only">
+                                <span><i data-lucide="qr-code" class="w-4 h-4"></i> Pix</span>
+                            </label>
                         </div>
                     </div>
 
-                    <div id="compraPurposeContainer">
-                        <label class="text-xs font-bold text-slate-500 uppercase mb-1 block">Destino / Motivo da Compra</label>
-                        <input type="text" id="purchasePurpose" placeholder="Ex: Abastecimento do caminhão, Material para escritório..." required oninput="updatePreview()" class="w-full p-2 border border-slate-300 rounded-lg text-sm bg-white focus:ring-2 focus:ring-brand-500 outline-none">
-                    </div>
-
-                    <div id="nfPurposeContainer" class="hidden">
-                        <label class="text-xs font-bold text-slate-500 uppercase mb-1 block">Observações da Entrega</label>
-                        <input type="text" id="nfPurpose" placeholder="Ex: Entregue para o porteiro..." oninput="updatePreview()" class="w-full p-2 border border-slate-300 rounded-lg text-sm bg-white focus:ring-2 focus:ring-brand-500 outline-none">
-                    </div>
-
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
-                        <div id="userContainer" class="sm:col-span-1 transition-all">
-                            <label id="lblUser" class="text-xs font-bold text-slate-500 uppercase mb-1 block">Quem usou o cartão?</label>
-                            <select id="userSelect" required onchange="handleUserChange()" class="w-full p-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand-500 outline-none text-sm bg-white font-bold">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div id="cardContainer">
+                            <label for="cardLastDigits" class="field-label">Cartão utilizado</label>
+                            <select id="cardLastDigits" data-picker="card" required onchange="handleCardChange()" class="field">
                                 <option value="">Selecione...</option>
-                                <option value="Mateus Paulo">Mateus Paulo</option>
-                                <option value="Assis Paulo">Assis Paulo</option>
-                                <option value="Tatiany Rocha">Tatiany Rocha</option>
-                                <option value="Outro">Outro (Digitar manualmente)</option>
+                                <option value="5013 - Itaú Azul (Paulo Selbach)">5013 - Itaú Azul (Paulo Selbach)</option>
+                                <option value="9140 - Banco Brasil (SPG) Paulo Selbach">9140 - Banco Brasil (SPG) Paulo Selbach</option>
+                                <option value="4835 - Banco Brasil (SPG) Gabriela">4835 - Banco Brasil (SPG) Gabriela</option>
+                                <option value="Outro">Outro (digitar)</option>
                             </select>
-                            
-                            <div id="customUserContainer" class="hidden mt-2 animate-fade-in-down">
-                                <input type="text" id="customUserName" placeholder="Digite o nome..." oninput="updatePreview()" class="w-full p-2 border border-brand-300 bg-brand-50 rounded-lg text-sm focus:ring-2 focus:ring-brand-500 outline-none text-slate-700">
-                            </div>
-                        </div>
-                        <div id="cardDigitsContainer">
-                            <label class="text-xs font-bold text-slate-500 uppercase mb-1 block">Cartão Utilizado</label>
-                            <select id="cardLastDigits" required onchange="handleCardChange()" class="w-full p-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand-500 outline-none text-sm bg-white font-bold">
-                                <option value="">Selecione...</option>
-                                <option value="5013 - Itaú Azul (Paulo Selbach)">5013 - Itaú Azul (Paulo Selbach) </option>
-                                <option value="9140 - Banco Brasil (SPG)">9140 - Banco Brasil (SPG)</option>
-                                <option value="Outro">Outro (Digitar manualmente)</option>
-                            </select>
-                            
                             <div id="customCardContainer" class="hidden mt-2 animate-fade-in-down">
-                                <input type="text" id="customCardName" placeholder="Ex: Elo 1234..." oninput="updatePreview()" class="w-full p-2 border border-brand-300 bg-brand-50 rounded-lg text-sm focus:ring-2 focus:ring-brand-500 outline-none text-slate-700">
+                                <input type="text" id="customCardName" placeholder="Ex: Elo final 1234" oninput="updatePreview()" class="field">
                             </div>
                         </div>
-                    </div>
-
-                    <div id="paymentRow" class="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2 animate-fade-in-down">
-                        <div>
-                            <label class="text-xs font-bold text-slate-500 uppercase mb-1 block">Forma de Pagamento</label>
-                            <select id="paymentType" required onchange="handlePaymentChange()" class="w-full p-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand-500 outline-none text-sm bg-white font-bold">
-                                <option value="">Selecione...</option>
-                                <option value="Crédito">Crédito</option>
-                                <option value="Débito">Débito</option>
-                            </select>
-                        </div>
-                        <div id="installmentsContainer" class="opacity-50 pointer-events-none transition-opacity">
-                            <label class="text-xs font-bold text-slate-500 uppercase mb-1 block">Parcelas</label>
-                            <select id="installments" required onchange="updatePreview()" class="w-full p-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-brand-500 outline-none text-sm bg-white font-bold">
+                        <div id="installmentsContainer" class="hidden animate-fade-in-down">
+                            <label for="installments" class="field-label">Parcelas</label>
+                            <select id="installments" data-picker="installments" onchange="updatePreview()" class="field">
                                 <option value="À vista">À vista (1x)</option>
                                 <option value="2x">2x</option>
                                 <option value="3x">3x</option>
@@ -211,126 +269,82 @@
                             </select>
                         </div>
                     </div>
-
-                    <div class="pt-4 border-t border-slate-100">
-                        <label class="text-xs font-bold text-slate-500 uppercase mb-1 flex items-center gap-1 justify-between">
-                            <span class="flex items-center gap-1"><i data-lucide="camera" class="w-3 h-3"></i> Foto do Comprovante/NF (Máx. 2)</span>
-                            <span id="photoCounter" class="text-[10px] text-brand-600 font-bold bg-brand-50 px-2 py-0.5 rounded-full">0/2</span>
-                        </label>
-                        <!-- Inputs ocultos -->
-                        <input type="file" id="photoUpload" accept="image/*" multiple class="hidden" onchange="handleImageUpload(event)">
-                        <input type="file" id="cameraCapture" accept="image/*" capture="environment" class="hidden" onchange="handleImageUpload(event)">
-                        <!-- Botões visíveis -->
-                        <div class="flex gap-2 mt-1">
-                            <button type="button" onclick="document.getElementById('cameraCapture').click()" class="flex-1 flex items-center justify-center gap-2 py-2.5 px-3 border border-slate-300 rounded-lg text-sm font-semibold text-slate-700 bg-slate-50 hover:bg-slate-100 active:scale-95 transition-all">
-                                <i data-lucide="camera" class="w-4 h-4 text-brand-600"></i>
-                                <span>Câmera</span>
-                            </button>
-                            <button type="button" onclick="document.getElementById('photoUpload').click()" class="flex-1 flex items-center justify-center gap-2 py-2.5 px-3 border border-slate-300 rounded-lg text-sm font-semibold text-slate-700 bg-slate-50 hover:bg-slate-100 active:scale-95 transition-all">
-                                <i data-lucide="image" class="w-4 h-4 text-brand-600"></i>
-                                <span>Galeria</span>
-                            </button>
-                        </div>
-                        <!-- Status da leitura automática pela IA -->
-                        <p id="iaStatus" class="hidden"></p>
-                        <!-- Campo oculto para validação HTML5 -->
-                        <input type="text" id="photoValidation" required class="hidden" tabindex="-1" aria-hidden="true">
-                    </div>
-                </form>
-            </div>
-        </div>
-
-        <!-- COLUNA DA DIREITA: PREVIEW DO RELATÓRIO -->
-        <div class="w-full lg:w-1/2 flex flex-col bg-slate-200/50 p-4 rounded-3xl border border-slate-300/50 h-max">
-            <div id="report-card" class="w-full h-auto flex flex-col bg-white rounded-none shadow-2xl overflow-hidden border border-slate-100 relative">
-                
-                <!-- HEADER DO PREVIEW -->
-                <div class="bg-gradient-to-br from-brand-700 via-brand-600 to-brand-800 p-8 text-white relative overflow-hidden flex flex-col justify-start shrink-0 border-b border-brand-900">
-                    <div class="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full blur-3xl -mr-20 -mt-20 pointer-events-none"></div>
-                    <i data-lucide="receipt" class="absolute -right-4 top-1/2 -translate-y-1/2 w-32 h-32 z-0 opacity-10 text-white transform -rotate-12"></i>
-                    
-                    <div class="relative z-10 w-full flex justify-between items-start"> 
-                        <div>
-                            <h2 id="previewMainTitle" class="text-2xl font-black leading-tight tracking-tight text-white uppercase">Comprovante</h2>
-                            <p id="previewSubTitle" class="text-brand-200 text-sm font-medium">Registro de Despesa</p>
-                        </div>
-                        
-                        <div class="text-right">
-                            <p id="previewTopLabel" class="text-xs text-brand-200 uppercase font-bold tracking-wider mb-1">Valor</p>
-                            <h3 class="text-2xl sm:text-3xl font-black text-white" id="previewAmount">R$ 0,00</h3>
-                        </div>
-                    </div>
                 </div>
+            </section>
+        </form>
 
-                <!-- CORPO DO COMPROVANTE NO PREVIEW -->
-                <div id="previewContent" class="px-6 py-6 flex flex-col h-auto min-h-[300px] justify-start gap-4">
-                    
-                    <!-- Grid de Informações -->
-                    <div class="grid grid-cols-2 gap-y-4 gap-x-6">
-                        <div>
-                            <p id="previewEstabLabel" class="text-[10px] text-slate-400 font-bold uppercase tracking-wider mb-0.5">Estabelecimento</p>
-                            <p class="text-sm font-black text-slate-800" id="previewEstablishment">---</p>
-                        </div>
-                        
-                        <div>
-                            <p class="text-[10px] text-slate-400 font-bold uppercase tracking-wider mb-0.5">Data</p>
-                            <p class="text-sm font-bold text-slate-700 flex items-center gap-1">
-                                <i data-lucide="calendar" class="w-3.5 h-3.5 text-brand-500"></i>
-                                <span id="previewDate">--/--/----</span>
+        <!-- COLUNA DA DIREITA: PRÉVIA DO REGISTRO -->
+        <aside class="w-full lg:w-1/2">
+            <div class="lg:sticky lg:top-24 space-y-2">
+                <p class="text-xs font-bold text-slate-500 uppercase tracking-wider px-1 flex items-center gap-1">
+                    <i data-lucide="eye" class="w-3.5 h-3.5"></i> Prévia do registro
+                </p>
+                <div id="report-card" class="w-full flex flex-col bg-white rounded-3xl shadow-xl shadow-slate-300/40 overflow-hidden border border-slate-200">
+
+                    <!-- HEADER DO PREVIEW -->
+                    <div class="bg-gradient-to-br from-brand-700 via-brand-600 to-brand-800 p-6 text-white relative overflow-hidden">
+                        <div class="absolute top-0 right-0 w-56 h-56 bg-white/10 rounded-full blur-3xl -mr-16 -mt-16 pointer-events-none"></div>
+                        <i data-lucide="receipt" class="absolute -right-4 top-1/2 -translate-y-1/2 w-28 h-28 opacity-10 -rotate-12"></i>
+                        <div class="relative z-10 min-w-0">
+                            <p id="previewSubTitle" class="text-brand-100 text-xs font-bold uppercase tracking-widest">Compra SPG</p>
+                            <h2 id="previewAmount" class="text-3xl sm:text-4xl font-black mt-1 tracking-tight">R$ 0,00</h2>
+                            <p class="text-brand-100 text-sm font-semibold mt-2 flex items-center gap-1.5 min-w-0">
+                                <i data-lucide="store" class="w-4 h-4 shrink-0"></i>
+                                <span id="previewEstablishment" class="truncate">---</span>
                             </p>
-                        </div>
-
-                        <div>
-                            <p id="previewUserLabel" class="text-[10px] text-slate-400 font-bold uppercase tracking-wider mb-0.5">Quem Usou</p>
-                            <p class="text-sm font-bold text-slate-700 flex items-center gap-1">
-                                <i data-lucide="user" class="w-3.5 h-3.5 text-brand-500"></i>
-                                <span id="previewUser">---</span>
-                            </p>
-                        </div>
-
-                        <div id="previewCardWrapper">
-                            <p class="text-[10px] text-slate-400 font-bold uppercase tracking-wider mb-0.5">Cartão</p>
-                            <p class="text-sm font-bold text-slate-700 flex items-center gap-1">
-                                <i data-lucide="credit-card" class="w-3.5 h-3.5 text-brand-500"></i>
-                                <span id="previewCardDigits">----</span>
-                            </p>
-                        </div>
-
-                        <div id="previewPaymentWrapper">
-                            <p class="text-[10px] text-slate-400 font-bold uppercase tracking-wider mb-0.5">Pagamento</p>
-                            <p class="text-sm font-bold text-slate-700">
-                                <span id="previewPaymentType" class="bg-slate-100 px-2 py-0.5 rounded border border-slate-200">---</span>
-                            </p>
-                        </div>
-
-                        <div id="previewInstallmentsWrapper">
-                            <p class="text-[10px] text-slate-400 font-bold uppercase tracking-wider mb-0.5">Parcelas</p>
-                            <p class="text-sm font-bold text-slate-700" id="previewInstallments">---</p>
                         </div>
                     </div>
 
-                    <!-- Destino da Compra -->
-                    <div class="mt-2 bg-slate-50 p-3 rounded-xl border border-slate-200">
-                        <p id="previewPurposeLabel" class="text-[10px] text-slate-400 font-bold uppercase tracking-wider mb-1">Destino / Motivo</p>
-                        <p class="text-sm text-slate-700 font-medium leading-relaxed" id="previewPurpose">---</p>
-                    </div>
+                    <!-- CORPO DO PREVIEW -->
+                    <div class="p-6 space-y-5">
+                        <div class="grid grid-cols-2 gap-4">
+                            <div class="min-w-0">
+                                <p class="preview-label">Data</p>
+                                <p class="preview-value"><i data-lucide="calendar" class="w-3.5 h-3.5 text-brand-500 shrink-0"></i><span id="previewDate">--/--/----</span></p>
+                            </div>
+                            <div class="min-w-0">
+                                <p id="previewUserLabel" class="preview-label">Quem usou</p>
+                                <p class="preview-value"><i data-lucide="user" class="w-3.5 h-3.5 text-brand-500 shrink-0"></i><span id="previewUser" class="truncate">---</span></p>
+                            </div>
+                            <div class="min-w-0">
+                                <p id="previewCardLabel" class="preview-label">Cartão</p>
+                                <p class="preview-value"><i data-lucide="credit-card" class="w-3.5 h-3.5 text-brand-500 shrink-0"></i><span id="previewCardDigits" class="truncate">----</span></p>
+                            </div>
+                            <div class="min-w-0">
+                                <p class="preview-label">Pagamento</p>
+                                <p class="preview-value"><i data-lucide="wallet" class="w-3.5 h-3.5 text-brand-500 shrink-0"></i><span id="previewPaymentType">---</span></p>
+                                <p id="previewInstallments" class="text-xs text-slate-500 font-semibold mt-0.5">À vista</p>
+                            </div>
+                        </div>
 
-                    <!-- Área da Imagem -->
-                    <div id="previewImageContainer" class="mt-4 hidden flex-col items-center w-full">
-                        <p class="text-[10px] text-slate-400 font-bold uppercase tracking-wider mb-2 w-full border-b border-slate-100 pb-1">Imagens em Anexo</p>
-                        <div id="previewImagesGrid" class="grid grid-cols-1 sm:grid-cols-2 gap-4 w-full">
-                            <!-- Imagens geradas pelo JS -->
+                        <div class="bg-slate-50 p-3 rounded-2xl border border-slate-200">
+                            <p class="preview-label">Destino / Motivo</p>
+                            <p id="previewPurpose" class="text-sm text-slate-700 font-medium leading-relaxed break-words">---</p>
+                        </div>
+
+                        <!-- Área da Imagem -->
+                        <div id="previewImageContainer" class="hidden flex-col w-full">
+                            <p class="preview-label border-b border-slate-100 pb-1 mb-2">Imagens em anexo</p>
+                            <div id="previewImagesGrid" class="grid grid-cols-2 gap-3 w-full"></div>
                         </div>
                     </div>
 
-                </div>
-
-                <div class="bg-slate-100 p-3 text-center border-t border-slate-200 shrink-0 mt-auto">
-                    <div class="flex justify-center items-center gap-2 text-[10px] text-slate-400 font-medium uppercase tracking-widest leading-relaxed">
+                    <div class="bg-slate-50 p-3 text-center border-t border-slate-200 text-[10px] text-slate-400 font-medium uppercase tracking-widest">
                         SPG SEDE • Controle Financeiro
                     </div>
                 </div>
             </div>
+        </aside>
+    </main>
+
+    <!-- BARRA DE ENVIO -->
+    <div class="fixed bottom-0 inset-x-0 z-30 px-4 pt-6 bg-gradient-to-t from-slate-100 via-slate-100/95 to-transparent pointer-events-none" style="padding-bottom: max(1rem, env(safe-area-inset-bottom));">
+        <div class="container mx-auto max-w-6xl">
+            <button type="button" onclick="confirmBeforeSend()" class="pointer-events-auto w-full lg:w-1/2 flex items-center justify-center gap-2 py-4 px-5 bg-brand-600 hover:bg-brand-700 text-white rounded-2xl text-sm font-black shadow-xl shadow-brand-600/30 transition-all active:scale-[0.98]">
+                <i data-lucide="send" class="w-5 h-5"></i>
+                <span id="sendBtnText">Enviar no WhatsApp</span>
+                <span id="sendBtnAmount" class="px-2 py-0.5 bg-white/20 rounded-lg empty:hidden"></span>
+            </button>
         </div>
     </div>
 
@@ -378,6 +392,39 @@
         </div>
     </div>
 
+    <!-- MODAL DE CONFIGURAÇÕES -->
+    <div id="settingsModal" class="fixed inset-0 bg-black/60 z-[60] hidden flex justify-center items-center backdrop-blur-sm transition-opacity duration-300">
+        <div class="bg-white rounded-2xl shadow-2xl p-6 w-11/12 max-w-md transform transition-all scale-100">
+            <div class="mx-auto flex items-center justify-center h-14 w-14 rounded-full bg-brand-50 mb-4">
+                <i data-lucide="settings" class="h-8 w-8 text-brand-600"></i>
+            </div>
+            <h3 class="text-xl font-black text-slate-800 text-center">Configurações</h3>
+
+            <div class="mt-5">
+                <label class="text-xs font-bold text-slate-500 uppercase mb-1 flex items-center gap-1"><i data-lucide="sparkles" class="w-3 h-3"></i> Chave da API Groq</label>
+                <div class="flex gap-2">
+                    <input type="password" id="groqKeyInput" placeholder="gsk_..." autocomplete="off" spellcheck="false" class="flex-1 min-w-0 p-2 border border-slate-300 rounded-lg text-sm bg-white focus:ring-2 focus:ring-brand-500 outline-none font-mono select-text">
+                    <button type="button" onclick="toggleGroqKeyVisibility()" class="px-3 border border-slate-300 rounded-lg text-slate-600 bg-slate-50 hover:bg-slate-100 active:scale-95 transition-all" title="Mostrar/ocultar">
+                        <i data-lucide="eye" class="w-4 h-4"></i>
+                    </button>
+                </div>
+                <p class="text-[11px] text-slate-500 font-medium leading-relaxed mt-2">
+                    Com a chave, os dados do comprovante são preenchidos automaticamente pela foto. Ela fica salva só neste aparelho. Crie a sua em <a href="https://console.groq.com/keys" target="_blank" rel="noopener" class="text-sky-600 font-bold hover:underline">console.groq.com/keys</a>.
+                </p>
+                <p id="groqKeyStatus" class="text-xs font-bold mt-2"></p>
+            </div>
+
+            <div class="grid grid-cols-2 gap-3 mt-6">
+                <button onclick="hideSettingsModal()" class="px-4 py-3 bg-slate-100 hover:bg-slate-200 text-slate-600 font-bold rounded-xl text-sm transition-colors uppercase">
+                    Fechar
+                </button>
+                <button onclick="saveSettings()" class="px-4 py-3 bg-brand-600 hover:bg-brand-700 text-white font-bold rounded-xl text-sm transition-all shadow-lg shadow-brand-600/20 active:scale-95 uppercase">
+                    Salvar
+                </button>
+            </div>
+        </div>
+    </div>
+
     <!-- MODAL DE MENSAGEM -->
     <div id="messageModal" class="fixed inset-0 bg-black/50 z-50 hidden flex justify-center items-center backdrop-blur-sm transition-opacity duration-300">
         <div class="bg-white rounded-xl shadow-2xl p-6 w-11/12 max-w-sm transform transition-all scale-100 text-center">
@@ -392,69 +439,19 @@
         // URL configurada do Apps Script (envio para a planilha)
         const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzOT5nv3C9ILZZM1VzRHkFKRvTFv5ngbIds57IbsXXoyFQeev-GZFT9Glu2Zlwd8kMA/exec";
 
-        // Novo estado unificado separando imagens por aba
-        let photosData = { compra: [], nf: [] };
-        let currentMode = 'compra'; // Modos: 'compra' ou 'nf'
+        // Fotos do comprovante (máx. 2), em base64
+        let photos = [];
 
-        const optionsCompra = `
-            <option value="">Selecione...</option>
-            <option value="Mercantil">Mercantil</option>
-            <option value="Americanas">Americanas</option>
-            <option value="Late & Mia - Clínica Veterinária">Late & Mia - Clínica Veterinária</option>
-            <option value="Águia Dourada Pet Shop">Águia Dourada Pet Shop</option>
-            <option value="Casa do Trator">Casa do Trator</option>
-            <option value="Cequip">Cequip</option>
-            <option value="Casa de Variedades">Casa de Variedades</option>
-            <option value="Adrovando">Adrovando</option>
-            <option value="Posto de Combustível">Posto de Combustível</option>
-            <option value="Restaurante">Restaurante</option>
-            <option value="Pousada">Pousada</option>
-            <option value="Pedágio">Pedágio</option>
-            <option value="Uber">Uber</option>
-            <option value="Passagem de Ônibus">Passagem de Ônibus</option>
-            <option value="Serviços de Internet">Serviços de Internet</option>
-            <option value="Mercado Livre">Mercado Livre</option>
-            <option value="Outro">Outro (Digitar manualmente)</option>
-        `;
-
-        const optionsNF = `
-            <option value="">Selecione...</option>
-            <option value="Ximenes Cruzeiro">Ximenes Cruzeiro</option>
-            <option value="Ximenes Centro">Ximenes Centro</option>
-            <option value="Ximenes Tianguá">Ximenes Tianguá</option>
-            <option value="Chocobalas Ubajara">Chocobalas Ubajara</option>
-            <option value="Chocobalas São Benedito">Chocobalas São Benedito</option>
-            <option value="Chocobalas Guaraciaba do Norte">Chocobalas Guaraciaba do Norte</option>
-            <option value="Super dois Irmão Guaraciaba do Norte">Super dois Irmão Guaraciaba do Norte</option>
-            <option value="São Pedro">São Pedro</option>
-            <option value="Café com Rosas">Café com Rosas</option>
-            <option value="Nossa Senhora de Fátima">Nossa Senhora de Fátima</option>
-            <option value="Outro">Outro (Digitar manualmente)</option>
-        `;
+        // Campos guardados no auto-save (forma de pagamento é radio e é tratada à parte)
+        const CAMPOS_SALVOS = ['purchaseDate', 'purchaseAmount', 'establishmentSelect', 'customEstablishmentName', 'purchasePurpose', 'userSelect', 'customUserName', 'cardLastDigits', 'customCardName', 'installments'];
 
         // Lógicas de Auto-save (Prevenção contra o encerramento do app câmera no Android)
         function saveState() {
-            const state = {
-                mode: currentMode,
-                photos: photosData,
-                form: {
-                    purchaseDate: document.getElementById('purchaseDate').value,
-                    purchaseAmount: document.getElementById('purchaseAmount').value,
-                    nfNumber: document.getElementById('nfNumber').value,
-                    establishmentSelect: document.getElementById('establishmentSelect').value,
-                    customEstablishmentName: document.getElementById('customEstablishmentName').value,
-                    purchasePurpose: document.getElementById('purchasePurpose').value,
-                    nfPurpose: document.getElementById('nfPurpose').value,
-                    userSelect: document.getElementById('userSelect').value,
-                    customUserName: document.getElementById('customUserName').value,
-                    cardLastDigits: document.getElementById('cardLastDigits').value,
-                    customCardName: document.getElementById('customCardName').value,
-                    paymentType: document.getElementById('paymentType').value,
-                    installments: document.getElementById('installments').value
-                }
-            };
+            const form = {};
+            CAMPOS_SALVOS.forEach(id => form[id] = document.getElementById(id).value);
+            form.paymentType = getPaymentType();
             try {
-                sessionStorage.setItem('spgAppState', JSON.stringify(state));
+                sessionStorage.setItem('spgAppState', JSON.stringify({ photos, form }));
             } catch (e) {
                 console.warn('Erro ao salvar estado (possível limite de memória atingido):', e);
             }
@@ -513,242 +510,117 @@
         document.addEventListener("DOMContentLoaded", () => {
             applyBrandAssets();
             lucide.createIcons();
-            
-            // 1. Tentar ler estado salvo
-            const saved = sessionStorage.getItem('spgAppState');
+            initPickers();
+
+            // 1. Restaurar estado salvo
             let state = null;
-            if (saved) {
-                try { state = JSON.parse(saved); } catch (e) {}
-            }
-
-            if (state && state.mode === 'nf') currentMode = 'nf';
-
-            // 2. Aplicar options do select logo de cara (para não apagar na restauração)
-            const isNF = currentMode === 'nf';
-            document.getElementById('establishmentSelect').innerHTML = isNF ? optionsNF : optionsCompra;
-
-            // 3. Preencher formulários salvos
+            try { state = JSON.parse(sessionStorage.getItem('spgAppState')); } catch (e) {}
             if (state) {
-                if (state.photos) photosData = state.photos;
-                if (state.form) {
-                    for (const key in state.form) {
-                        const el = document.getElementById(key);
-                        if (el) el.value = state.form[key] || '';
-                    }
-                }
+                // Versões antigas guardavam as fotos por aba ({ compra: [], nf: [] })
+                photos = Array.isArray(state.photos) ? state.photos : (state.photos?.compra || []);
+                const form = state.form || {};
+                CAMPOS_SALVOS.forEach(id => { if (form[id]) document.getElementById(id).value = form[id]; });
+                if (form.paymentType) setPaymentType(form.paymentType);
             }
 
-            // 4. Data padrão
-            const dateInput = document.getElementById('purchaseDate');
-            if (!dateInput.value) {
-                const today = new Date();
-                const yyyy = today.getFullYear();
-                const mm = String(today.getMonth() + 1).padStart(2, '0');
-                const dd = String(today.getDate()).padStart(2, '0');
-                dateInput.value = `${yyyy}-${mm}-${dd}`;
-            }
+            // 2. Data padrão
+            if (!document.getElementById('purchaseDate').value) setDataHoje();
 
-            // 5. Configura e reflete a interface final (isRestoring = true evita limpar select)
-            setMode(currentMode, true);
-            
+            // 3. Reflete a interface final
             handleEstablishmentChange();
             handleUserChange();
-            if(!isNF) {
-                handleCardChange();
-                handlePaymentChange();
-            }
+            handleCardChange();
+            handlePaymentChange();
+            renderPhotoPreviews();
+            updateIaHint();
 
-            // 6. Ativar listeners para o Auto-save agir a qualquer mudança
+            // 4. Ativar listeners para o Auto-save agir a qualquer mudança
             document.getElementById('receiptForm').addEventListener('input', saveState);
             document.getElementById('receiptForm').addEventListener('change', saveState);
         });
 
-        // Alternador de Modos
-        const MODE_BTN_ACTIVE = "flex-1 py-2.5 px-2 text-sm font-black rounded-lg bg-white shadow-sm text-brand-600 transition-all border border-slate-200/50";
-        const MODE_BTN_INACTIVE = "flex-1 py-2.5 px-2 text-sm font-bold rounded-lg text-slate-500 hover:text-slate-700 hover:bg-slate-300/50 transition-all";
-
-        function setMode(mode, isRestoring = false) {
-            // Só troca a lista de estabelecimentos se o tipo de formulário mudou
-            const listChanged = mode !== currentMode;
-            currentMode = mode;
-            const isNF = mode === 'nf';
-
-            // UI dos Botões Superiores
-            document.getElementById('btnModeCompra').className = mode === 'compra' ? MODE_BTN_ACTIVE : MODE_BTN_INACTIVE;
-            document.getElementById('btnModeNF').className = isNF ? MODE_BTN_ACTIVE : MODE_BTN_INACTIVE;
-
-            if (isNF) {
-                
-                // Alterando Títulos e Ícones do Formulário
-                document.getElementById('formIcon').setAttribute('data-lucide', 'file-check');
-                document.getElementById('formTitleText').innerText = "Dados da Entrega / NF";
-                
-                document.getElementById('lblDate').innerText = "Data da Entrega";
-                document.getElementById('lblEstablishment').innerText = "Cliente / Local de Entrega";
-                
-                document.getElementById('compraPurposeContainer').classList.add('hidden');
-                document.getElementById('purchasePurpose').removeAttribute('required');
-                document.getElementById('nfPurposeContainer').classList.remove('hidden');
-                
-                document.getElementById('lblUser').innerText = "Entregador / Motorista";
-                
-                // Exibindo/Ocultando Campos
-                document.getElementById('amountContainer').classList.add('hidden');
-                document.getElementById('purchaseAmount').removeAttribute('required');
-                
-                document.getElementById('nfContainer').classList.remove('hidden');
-                
-                document.getElementById('cardDigitsContainer').classList.add('hidden');
-                document.getElementById('cardLastDigits').removeAttribute('required');
-                document.getElementById('customCardName').removeAttribute('required');
-                
-                document.getElementById('paymentRow').classList.add('hidden');
-                document.getElementById('paymentType').removeAttribute('required');
-                
-                document.getElementById('userContainer').classList.remove('sm:col-span-1');
-                document.getElementById('userContainer').classList.add('sm:col-span-2');
-
-                // Mudar lista para Clientes de NF (somente se não estiver restaurando)
-                if (!isRestoring && listChanged) {
-                    document.getElementById('establishmentSelect').innerHTML = optionsNF;
-                    document.getElementById('establishmentSelect').value = "";
-                    handleEstablishmentChange();
-                }
-            } else {
-                document.getElementById('formIcon').setAttribute('data-lucide', 'shopping-cart');
-                document.getElementById('formTitleText').innerText = "Dados da Compra";
-                
-                document.getElementById('lblDate').innerText = "Data da Compra";
-                document.getElementById('lblEstablishment').innerText = "Estabelecimento (Loja/Fornecedor)";
-                
-                document.getElementById('nfPurposeContainer').classList.add('hidden');
-                document.getElementById('compraPurposeContainer').classList.remove('hidden');
-                document.getElementById('purchasePurpose').setAttribute('required', 'required');
-                
-                document.getElementById('lblUser').innerText = "Quem usou o cartão?";
-                
-                document.getElementById('amountContainer').classList.remove('hidden');
-                document.getElementById('purchaseAmount').setAttribute('required', 'required');
-                
-                document.getElementById('nfContainer').classList.add('hidden');
-                
-                document.getElementById('cardDigitsContainer').classList.remove('hidden');
-                document.getElementById('cardLastDigits').setAttribute('required', 'required');
-                handleCardChange(); // Re-avalia
-                
-                document.getElementById('paymentRow').classList.remove('hidden');
-                document.getElementById('paymentType').setAttribute('required', 'required');
-                
-                document.getElementById('userContainer').classList.remove('sm:col-span-2');
-                document.getElementById('userContainer').classList.add('sm:col-span-1');
-
-                // Voltar lista para Estabelecimentos de Compra (somente se não estiver restaurando)
-                if (!isRestoring && listChanged) {
-                    document.getElementById('establishmentSelect').innerHTML = optionsCompra;
-                    document.getElementById('establishmentSelect').value = "";
-                    handleEstablishmentChange();
-                }
-            }
-            
-            document.getElementById('photoUpload').value = '';
-            document.getElementById('cameraCapture').value = '';
-            renderPhotoPreviews(); // Mostrará apenas as fotos vinculadas à aba atual
-            setIaStatus('');
-            
-            lucide.createIcons();
-            updatePreview();
-            
-            if (!isRestoring) saveState();
+        function setDataHoje() {
+            const today = new Date();
+            const yyyy = today.getFullYear();
+            const mm = String(today.getMonth() + 1).padStart(2, '0');
+            const dd = String(today.getDate()).padStart(2, '0');
+            document.getElementById('purchaseDate').value = `${yyyy}-${mm}-${dd}`;
         }
 
         // Controle do Select de Usuário
         function handleUserChange() {
-            const userSelect = document.getElementById('userSelect');
-            const customContainer = document.getElementById('customUserContainer');
-            const customInput = document.getElementById('customUserName');
-            
-            if (userSelect.value === 'Outro') {
-                customContainer.classList.remove('hidden');
-                customInput.setAttribute('required', 'required');
-            } else {
-                customContainer.classList.add('hidden');
-                customInput.removeAttribute('required');
-            }
-            updatePreview();
+            toggleCustomField('userSelect', 'customUserContainer', 'customUserName');
         }
 
         function getUserName() {
-            const selectVal = document.getElementById('userSelect').value;
-            if (selectVal === 'Outro') {
-                return document.getElementById('customUserName').value;
-            }
-            return selectVal;
+            return getSelectOrCustom('userSelect', 'customUserName');
         }
 
         // Controle do Select de Estabelecimento
         function handleEstablishmentChange() {
-            const select = document.getElementById('establishmentSelect');
-            const customContainer = document.getElementById('customEstablishmentContainer');
-            const customInput = document.getElementById('customEstablishmentName');
-            
-            if (select.value === 'Outro') {
-                customContainer.classList.remove('hidden');
-                customInput.setAttribute('required', 'required');
-            } else {
-                customContainer.classList.add('hidden');
-                customInput.removeAttribute('required');
-            }
-            updatePreview();
+            toggleCustomField('establishmentSelect', 'customEstablishmentContainer', 'customEstablishmentName');
         }
 
         function getEstablishmentName() {
-            const selectVal = document.getElementById('establishmentSelect').value;
-            if (selectVal === 'Outro') {
-                return document.getElementById('customEstablishmentName').value;
-            }
-            return selectVal;
+            return getSelectOrCustom('establishmentSelect', 'customEstablishmentName');
         }
 
         // Controle do Select de Cartão
         function handleCardChange() {
-            const select = document.getElementById('cardLastDigits');
-            const customContainer = document.getElementById('customCardContainer');
-            const customInput = document.getElementById('customCardName');
-            
-            if (select.value === 'Outro') {
-                customContainer.classList.remove('hidden');
-                customInput.setAttribute('required', 'required');
-            } else {
-                customContainer.classList.add('hidden');
-                customInput.removeAttribute('required');
-            }
-            updatePreview();
+            toggleCustomField('cardLastDigits', 'customCardContainer', 'customCardName');
         }
 
         function getCardName() {
-            const selectVal = document.getElementById('cardLastDigits').value;
-            if (selectVal === 'Outro') {
-                return document.getElementById('customCardName').value;
-            }
-            return selectVal;
+            return getSelectOrCustom('cardLastDigits', 'customCardName');
         }
 
-        // Controle do Tipo de Pagamento (Habilita/Desabilita parcelas)
-        function handlePaymentChange() {
-            const type = document.getElementById('paymentType').value;
-            const instContainer = document.getElementById('installmentsContainer');
-            const instSelect = document.getElementById('installments');
+        // "Outro" abre o campo para digitar e o torna obrigatório
+        function toggleCustomField(selectId, containerId, inputId) {
+            const isOutro = document.getElementById(selectId).value === 'Outro';
+            document.getElementById(containerId).classList.toggle('hidden', !isOutro);
+            document.getElementById(inputId).required = isOutro;
+            updatePreview();
+        }
 
-            if (type === 'Débito') {
-                instContainer.classList.add('opacity-50', 'pointer-events-none');
-                instSelect.value = 'À vista';
-            } else if (type === 'Crédito') {
-                instContainer.classList.remove('opacity-50', 'pointer-events-none');
-            } else {
-                instContainer.classList.add('opacity-50', 'pointer-events-none');
-                instSelect.value = 'À vista';
+        function getSelectOrCustom(selectId, inputId) {
+            const selectVal = document.getElementById(selectId).value;
+            return selectVal === 'Outro' ? document.getElementById(inputId).value : selectVal;
+        }
+
+        // Forma de pagamento (Crédito/Débito em botões)
+        function getPaymentType() {
+            return document.querySelector('input[name="paymentType"]:checked')?.value || '';
+        }
+
+        function setPaymentType(value) {
+            document.querySelectorAll('input[name="paymentType"]').forEach(r => r.checked = r.value === value);
+            handlePaymentChange();
+        }
+
+        // Parcelas só aparecem no crédito; no Pix não há cartão, só quem pagou
+        function handlePaymentChange() {
+            const isCredito = getPaymentType() === 'Crédito';
+            const isPix = isPagamentoPix();
+            document.getElementById('installmentsContainer').classList.toggle('hidden', !isCredito);
+            if (!isCredito) document.getElementById('installments').value = 'À vista';
+
+            document.getElementById('cardContainer').classList.toggle('hidden', isPix);
+            document.getElementById('cardLastDigits').required = !isPix;
+            document.getElementById('lblUser').innerText = isPix ? 'Quem pagou o Pix?' : 'Quem usou o cartão?';
+            if (isPix) {
+                // Sem cartão: limpa a escolha para o campo "Outro" oculto não travar o envio
+                document.getElementById('cardLastDigits').value = '';
+                handleCardChange();
+                if (!document.getElementById('userSelect').value) {
+                    document.getElementById('userSelect').value = 'Mateus Paulo';
+                    handleUserChange();
+                }
             }
             updatePreview();
+        }
+
+        function isPagamentoPix() {
+            return getPaymentType() === 'Pix';
         }
 
         // Máscara de moeda para o input
@@ -763,104 +635,256 @@
             input.value = value.replace('.', ',').replace(/(\d)(?=(\d{3})+(?!\d))/g, '$1.');
         }
 
-        // Atualiza a visualização do cartão da direita em tempo real
-        function updatePreview() {
-            const isNF = currentMode === 'nf';
-            
-            // Coleta de dados
-            const dateVal = document.getElementById('purchaseDate').value;
-            const amountStr = document.getElementById('purchaseAmount').value;
-            const nfNum = document.getElementById('nfNumber').value;
-            const establishment = getEstablishmentName();
-            const purpose = isNF ? document.getElementById('nfPurpose').value : document.getElementById('purchasePurpose').value;
-            const user = getUserName();
-            const cardDigits = getCardName();
-            const paymentType = document.getElementById('paymentType').value;
-            const installments = document.getElementById('installments').value;
+        function formatBRL(value) {
+            return value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+        }
 
-            // Formatar data
+        function getAmount() {
+            const amountStr = document.getElementById('purchaseAmount').value;
+            return amountStr ? parseFloat(amountStr.replace(/\./g, '').replace(',', '.')) : 0;
+        }
+
+        function getInstallmentsText(amount) {
+            const installments = document.getElementById('installments').value;
+            if (getPaymentType() !== 'Crédito' || installments === 'À vista') return 'À vista';
+            const num = parseInt(installments, 10);
+            return `${installments} de ${formatBRL(amount / num)}`;
+        }
+
+        // Cartão final 5013 é do Paulo: compra particular
+        function isCompraParticular() {
+            return getCardName().startsWith('5013');
+        }
+
+        // Atualiza a prévia do registro em tempo real
+        function updatePreview() {
+            const dateVal = document.getElementById('purchaseDate').value;
+            const amount = getAmount();
+
             let displayDate = "--/--/----";
             if (dateVal) {
-                const parts = dateVal.split('-');
-                displayDate = `${parts[2]}/${parts[1]}/${parts[0]}`;
+                const [yyyy, mm, dd] = dateVal.split('-');
+                displayDate = `${dd}/${mm}/${yyyy}`;
             }
 
-            // Formatar Valor e Parcelas (Apenas se for Compra)
-            let displayAmount = "R$ 0,00";
-            let installmentsDisplay = 'À vista';
-            
-            if (!isNF) {
-                let rawAmount = 0;
-                if (amountStr) {
-                    rawAmount = parseFloat(amountStr.replace(/\./g, '').replace(',', '.'));
-                    displayAmount = rawAmount.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
-                }
-                
-                if (paymentType === 'Crédito' && installments !== 'À vista') {
-                    const num = parseInt(installments.replace('x', ''));
-                    if (num > 0) {
-                        const instValue = rawAmount / num;
-                        installmentsDisplay = `${installments} de ${instValue.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}`;
-                    }
-                }
-            }
-
-            // Inserção Dinâmica baseada no Modo
-            if (isNF) {
-                document.getElementById('previewTopLabel').innerText = "Nº da NF";
-                document.getElementById('previewAmount').innerText = nfNum || "---";
-                document.getElementById('previewMainTitle').innerText = "NOTA FISCAL";
-                document.getElementById('previewSubTitle').innerText = "Comprovante de Entrega";
-                
-                document.getElementById('previewEstabLabel').innerText = "CLIENTE / DESTINO";
-                document.getElementById('previewUserLabel').innerText = "ENTREGADOR";
-                document.getElementById('previewPurposeLabel').innerText = "OBSERVAÇÕES";
-                
-                document.getElementById('previewCardWrapper').classList.add('hidden');
-                document.getElementById('previewPaymentWrapper').classList.add('hidden');
-                document.getElementById('previewInstallmentsWrapper').classList.add('hidden');
-            } else {
-                document.getElementById('previewTopLabel').innerText = "Valor";
-                document.getElementById('previewAmount').innerText = displayAmount;
-                document.getElementById('previewMainTitle').innerText = "COMPROVANTE";
-                document.getElementById('previewSubTitle').innerText = "Registro de Despesa";
-                
-                document.getElementById('previewEstabLabel').innerText = "ESTABELECIMENTO";
-                document.getElementById('previewUserLabel').innerText = "QUEM USOU";
-                document.getElementById('previewPurposeLabel').innerText = "DESTINO / MOTIVO";
-                
-                document.getElementById('previewCardWrapper').classList.remove('hidden');
-                document.getElementById('previewPaymentWrapper').classList.remove('hidden');
-                document.getElementById('previewInstallmentsWrapper').classList.remove('hidden');
-            }
-
-            // Inserir valores padrão que servem pros 2
+            document.getElementById('previewSubTitle').innerText = isCompraParticular() ? 'Compra particular' : 'Compra SPG';
+            document.getElementById('previewAmount').innerText = formatBRL(amount);
+            document.getElementById('sendBtnAmount').innerText = amount > 0 ? formatBRL(amount) : '';
             document.getElementById('previewDate').innerText = displayDate;
-            document.getElementById('previewEstablishment').innerText = establishment || '---';
-            document.getElementById('previewUser').innerText = user || '---';
-            document.getElementById('previewPurpose').innerText = purpose || '---';
-            
-            // Valores de pagamento (só mostram na Compra)
-            if (!isNF) {
-                document.getElementById('previewCardDigits').innerText = cardDigits || '----';
-                document.getElementById('previewPaymentType').innerText = paymentType || '---';
-                document.getElementById('previewInstallments').innerText = installmentsDisplay;
-            }
+            document.getElementById('previewEstablishment').innerText = getEstablishmentName() || '---';
+            document.getElementById('previewUser').innerText = getUserName() || '---';
+            document.getElementById('previewPurpose').innerText = document.getElementById('purchasePurpose').value || '---';
+            const isPix = isPagamentoPix();
+            document.getElementById('previewUserLabel').innerText = isPix ? 'Pago por' : 'Quem usou';
+            document.getElementById('previewCardLabel').innerText = isPix ? 'Meio' : 'Cartão';
+            document.getElementById('previewCardDigits').innerText = isPix ? 'Pix' : (getCardName() || '----');
+            document.getElementById('previewPaymentType').innerText = getPaymentType() || '---';
+            document.getElementById('previewInstallments').innerText = getInstallmentsText(amount);
+            refreshPickers();
         }
+
+        // ===================== SELETORES MODERNOS =====================
+        // Cada <select data-picker> ganha um botão que abre uma lista (folha de baixo no celular, menu no PC).
+        // O <select> original continua guardando o valor e disparando o onchange, então o resto do código não muda.
+        const PICKER_ICONS = { store: 'store', user: 'user', card: 'credit-card', installments: 'calendar-clock' };
+
+        function escapeHtml(str) {
+            return String(str ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+        }
+
+        function normalizar(str) {
+            return String(str).normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();
+        }
+
+        function initPickers() {
+            document.querySelectorAll('select[data-picker]').forEach(select => {
+                const wrap = document.createElement('div');
+                wrap.className = 'relative';
+                select.parentNode.insertBefore(wrap, select);
+                wrap.appendChild(select);
+                select.classList.add('picker-native');
+                select.tabIndex = -1;
+
+                const btn = document.createElement('button');
+                btn.type = 'button';
+                btn.className = 'field picker-trigger';
+                btn.setAttribute('aria-haspopup', 'listbox');
+                btn.onclick = () => openPicker(select, btn);
+                wrap.appendChild(btn);
+                select.pickerBtn = btn;
+
+                // Clicar no rótulo abre a lista em vez de focar o select escondido
+                document.querySelector(`label[for="${select.id}"]`)?.addEventListener('click', e => { e.preventDefault(); btn.click(); });
+            });
+            refreshPickers();
+        }
+
+        // Texto de cada opção: cartão vira "Itaú Azul..." + "Final 5013"; parcelas mostram o valor de cada uma
+        function pickerOptionText(select, option) {
+            if (option.value === 'Outro') return { title: 'Outro', sub: 'Digitar manualmente' };
+            const tipo = select.dataset.picker;
+            if (tipo === 'card') {
+                const m = option.value.match(/^(\d{4}) - (.*)$/);
+                if (m) return { title: m[2], sub: `Final ${m[1]}` };
+            }
+            if (tipo === 'installments') {
+                const amount = getAmount();
+                const n = parseInt(option.value, 10) || 1;
+                return { title: option.text, sub: amount > 0 ? (n === 1 ? formatBRL(amount) : `${n}x de ${formatBRL(amount / n)}`) : '' };
+            }
+            return { title: option.text, sub: '' };
+        }
+
+        function pickerAvatar(select, option) {
+            if (option.value === 'Outro') return '<i data-lucide="pencil" class="w-4 h-4"></i>';
+            const tipo = select.dataset.picker;
+            if (tipo === 'user') return escapeHtml(option.value.split(' ').map(p => p[0]).slice(0, 2).join(''));
+            if (tipo === 'card') return '<i data-lucide="credit-card" class="w-4 h-4"></i>';
+            if (tipo === 'installments') return escapeHtml(option.value === 'À vista' ? '1x' : option.value);
+            return escapeHtml(option.text.trim()[0] || '?');
+        }
+
+        // Atualiza o texto dos botões (chamado a cada updatePreview, pois o código muda os selects direto)
+        function refreshPickers() {
+            document.querySelectorAll('select[data-picker]').forEach(select => {
+                const btn = select.pickerBtn;
+                if (!btn || btn.dataset.val === select.value) return;
+                btn.dataset.val = select.value;
+
+                const option = select.selectedOptions[0];
+                const temValor = !!select.value;
+                let texto = 'Selecione...';
+                if (temValor) {
+                    const { title, sub } = pickerOptionText(select, option);
+                    texto = select.dataset.picker === 'card' && sub ? `${sub.replace('Final ', '•••• ')} · ${title}` : title;
+                }
+                btn.innerHTML = `
+                    <i data-lucide="${PICKER_ICONS[select.dataset.picker]}" class="w-4 h-4 shrink-0 ${temValor ? 'text-brand-600' : 'text-slate-400'}"></i>
+                    <span class="truncate ${temValor ? '' : 'text-slate-400 font-medium'}">${escapeHtml(texto)}</span>
+                    <i data-lucide="chevron-down" class="w-4 h-4 ml-auto shrink-0 text-slate-400"></i>`;
+            });
+            lucide.createIcons();
+        }
+
+        function openPicker(select, btn) {
+            closePicker();
+            const opcoes = Array.from(select.options).filter(o => o.value);
+            const comBusca = select.dataset.picker === 'store';
+            const temOutro = opcoes.some(o => o.value === 'Outro');
+            const isMobile = matchMedia('(max-width: 639px)').matches;
+            const titulo = document.querySelector(`label[for="${select.id}"]`)?.innerText || '';
+
+            const overlay = document.createElement('div');
+            overlay.id = 'pickerOverlay';
+            overlay.className = `fixed inset-0 z-[70] ${isMobile ? 'bg-black/40 backdrop-blur-[2px]' : ''}`;
+            overlay.onclick = e => { if (e.target === overlay) closePicker(); };
+
+            const panel = document.createElement('div');
+            panel.className = isMobile ? 'picker-sheet' : 'picker-pop';
+            panel.setAttribute('role', 'listbox');
+            if (!isMobile) {
+                // Menu ancorado no campo: abre para baixo, ou para cima se não couber
+                const r = btn.getBoundingClientRect();
+                const espacoAbaixo = innerHeight - r.bottom;
+                panel.style.left = `${r.left}px`;
+                panel.style.width = `${r.width}px`;
+                if (espacoAbaixo > 320 || espacoAbaixo > r.top) {
+                    panel.style.top = `${r.bottom + 6}px`;
+                    panel.style.maxHeight = `${Math.min(380, espacoAbaixo - 16)}px`;
+                } else {
+                    panel.style.bottom = `${innerHeight - r.top + 6}px`;
+                    panel.style.maxHeight = `${Math.min(380, r.top - 16)}px`;
+                }
+            }
+
+            panel.innerHTML = `
+                ${isMobile ? `<div class="w-10 h-1.5 bg-slate-300 rounded-full mx-auto mb-3 shrink-0"></div><p class="text-base font-black text-slate-800 px-1 mb-3 shrink-0">${escapeHtml(titulo)}</p>` : ''}
+                ${comBusca ? `<div class="relative mb-2 shrink-0"><i data-lucide="search" class="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none"></i><input type="text" class="field picker-search" placeholder="Buscar..." autocomplete="off"></div>` : ''}
+                <div class="picker-list overflow-y-auto overscroll-contain"></div>`;
+
+            const list = panel.querySelector('.picker-list');
+            const render = (filtro = '') => {
+                const f = normalizar(filtro.trim());
+                const visiveis = opcoes.filter(o => !f || o.value === 'Outro' || normalizar(o.text).includes(f));
+                let html = visiveis.map(o => {
+                    const selecionado = o.value === select.value;
+                    const { title, sub } = pickerOptionText(select, o);
+                    return `
+                        <button type="button" data-value="${escapeHtml(o.value)}" class="picker-option ${selecionado ? 'is-selected' : ''}">
+                            <span class="picker-avatar">${pickerAvatar(select, o)}</span>
+                            <span class="min-w-0 flex-1 text-left">
+                                <span class="block truncate">${escapeHtml(title)}</span>
+                                ${sub ? `<span class="block text-xs text-slate-500 font-medium truncate">${escapeHtml(sub)}</span>` : ''}
+                            </span>
+                            ${selecionado ? '<i data-lucide="check" class="w-4 h-4 text-brand-600 shrink-0"></i>' : ''}
+                        </button>`;
+                }).join('');
+                // Busca sem resultado exato: oferece usar o texto digitado como "Outro"
+                if (f && temOutro && !opcoes.some(o => normalizar(o.text) === f)) {
+                    html = `
+                        <button type="button" data-custom="${escapeHtml(filtro.trim())}" class="picker-option">
+                            <span class="picker-avatar"><i data-lucide="plus" class="w-4 h-4"></i></span>
+                            <span class="min-w-0 flex-1 text-left truncate">Usar "${escapeHtml(filtro.trim())}"</span>
+                        </button>` + html;
+                }
+                list.innerHTML = html;
+                lucide.createIcons();
+            };
+
+            list.onclick = e => {
+                const opt = e.target.closest('[data-value], [data-custom]');
+                if (!opt) return;
+                if (opt.dataset.custom !== undefined) {
+                    select.value = 'Outro';
+                    const customInput = select.closest('div.relative').parentNode.querySelector('input[type="text"]');
+                    if (customInput) customInput.value = opt.dataset.custom;
+                } else {
+                    select.value = opt.dataset.value;
+                }
+                closePicker();
+                select.dispatchEvent(new Event('change', { bubbles: true }));
+            };
+
+            overlay.appendChild(panel);
+            document.body.appendChild(overlay);
+            if (isMobile) document.body.style.overflow = 'hidden';
+            render();
+
+            const busca = panel.querySelector('.picker-search');
+            if (busca) {
+                busca.oninput = () => render(busca.value);
+                if (!isMobile) busca.focus(); // No celular não abre o teclado sem o usuário pedir
+            }
+            panel.querySelector('.is-selected')?.scrollIntoView({ block: 'nearest' });
+        }
+
+        function closePicker() {
+            document.getElementById('pickerOverlay')?.remove();
+            document.body.style.overflow = '';
+        }
+
+        document.addEventListener('keydown', e => { if (e.key === 'Escape') closePicker(); });
+        // Só fecha se a largura mudar (o teclado do celular muda só a altura)
+        let larguraJanela = innerWidth;
+        window.addEventListener('resize', () => {
+            if (innerWidth !== larguraJanela) closePicker();
+            larguraJanela = innerWidth;
+        });
+        window.addEventListener('scroll', () => { if (!matchMedia('(max-width: 639px)').matches) closePicker(); });
 
         // Lógica de Imagem
         async function handleImageUpload(event) {
             const files = Array.from(event.target.files);
             if (!files.length) return;
 
-            if (photosData[currentMode].length + files.length > 2) {
+            if (photos.length + files.length > 2) {
                 showMessageModal('Limite Excedido', 'Você pode enviar no máximo 2 fotos.', 'error');
                 document.getElementById('photoUpload').value = '';
                 document.getElementById('cameraCapture').value = '';
                 return;
             }
 
-            const eraPrimeiraFoto = photosData[currentMode].length === 0;
+            const eraPrimeiraFoto = photos.length === 0;
             const uploadBtn = document.getElementById('photoUpload');
             const cameraBtn = document.getElementById('cameraCapture');
             uploadBtn.disabled = true;
@@ -869,8 +893,7 @@
             for (const file of files) {
                 if (!file.type.startsWith('image/')) continue;
                 try {
-                    const base64 = await processImage(file);
-                    photosData[currentMode].push(base64);
+                    photos.push(await processImage(file));
                 } catch (err) {
                     console.error('Erro ao processar imagem:', err);
                     showMessageModal('Erro ao Carregar Foto', 'Não foi possível processar a imagem. Tente tirar a foto com resolução menor nas configurações da câmera.', 'error');
@@ -884,12 +907,11 @@
             cameraBtn.disabled = false;
 
             renderPhotoPreviews();
-            updatePreview();
             saveState();
 
             // Só a primeira foto é lida pela IA (a segunda costuma ser complemento)
-            if (eraPrimeiraFoto && photosData[currentMode].length > 0) {
-                lerComprovanteComIA(photosData[currentMode][0]);
+            if (eraPrimeiraFoto && photos.length > 0) {
+                lerComprovanteComIA(photos[0]);
             }
         }
 
@@ -899,21 +921,60 @@
         const GROQ_KEY_STORAGE = 'spgGroqKey';
 
         function getGroqKey() {
-            let key = '';
-            try { key = localStorage.getItem(GROQ_KEY_STORAGE) || ''; } catch (e) {}
-            if (key) return key;
-            key = (prompt('Cole sua chave da Groq (começa com "gsk_") para preencher os dados automaticamente pela foto.\nEla fica salva só neste aparelho.') || '').trim();
-            if (key) {
-                try { localStorage.setItem(GROQ_KEY_STORAGE, key); } catch (e) {}
+            try { return localStorage.getItem(GROQ_KEY_STORAGE) || ''; } catch (e) { return ''; }
+        }
+
+        // Dica de configurar a chave só aparece enquanto não houver chave
+        function updateIaHint() {
+            document.getElementById('iaHint').classList.toggle('hidden', !!getGroqKey());
+        }
+
+        // Tela de configurações (botão de engrenagem)
+        function showSettingsModal() {
+            const input = document.getElementById('groqKeyInput');
+            input.value = getGroqKey();
+            input.type = 'password';
+            updateGroqKeyStatus();
+            document.getElementById('settingsModal').classList.remove('hidden');
+            lucide.createIcons();
+        }
+
+        function hideSettingsModal() { document.getElementById('settingsModal').classList.add('hidden'); }
+
+        function toggleGroqKeyVisibility() {
+            const input = document.getElementById('groqKeyInput');
+            input.type = input.type === 'password' ? 'text' : 'password';
+        }
+
+        function updateGroqKeyStatus() {
+            const status = document.getElementById('groqKeyStatus');
+            const temChave = !!getGroqKey();
+            status.className = `text-xs font-bold mt-2 ${temChave ? 'text-green-600' : 'text-slate-400'}`;
+            status.innerText = temChave ? '✅ Leitura automática ativada' : 'Leitura automática desativada';
+        }
+
+        function saveSettings() {
+            const key = document.getElementById('groqKeyInput').value.trim();
+            if (key && !key.startsWith('gsk_')) {
+                const status = document.getElementById('groqKeyStatus');
+                status.className = 'text-xs font-bold mt-2 text-red-600';
+                status.innerText = 'A chave da Groq começa com "gsk_". Confira e cole de novo.';
+                return;
             }
-            return key;
+            try {
+                if (key) localStorage.setItem(GROQ_KEY_STORAGE, key);
+                else localStorage.removeItem(GROQ_KEY_STORAGE);
+            } catch (e) {}
+            hideSettingsModal();
+            updateIaHint();
+            showMessageModal('Configurações salvas', key ? 'Leitura automática do comprovante ativada.' : 'Leitura automática desativada.', 'success');
         }
 
         function setIaStatus(text, tipo) {
             const el = document.getElementById('iaStatus');
-            if (!text) { el.classList.add('hidden'); return; }
+            if (!text) { el.className = 'hidden'; return; }
             const cores = { loading: 'text-brand-700 bg-brand-50 border-brand-200', ok: 'text-green-700 bg-green-50 border-green-200', erro: 'text-red-700 bg-red-50 border-red-200' };
-            el.className = `mt-2 text-xs font-bold px-3 py-2 rounded-lg border flex items-center gap-2 ${cores[tipo]}`;
+            el.className = `mt-3 text-xs font-bold px-3 py-2 rounded-xl border flex items-center gap-2 ${cores[tipo]}`;
             el.innerText = text;
         }
 
@@ -926,22 +987,19 @@
             const key = getGroqKey();
             if (!key) return;
 
-            const modo = currentMode;
-            const isNF = modo === 'nf';
             setIaStatus('🤖 Lendo comprovante...', 'loading');
 
-            const instrucoes = `Você lê fotos de ${isNF ? 'notas fiscais (DANFE/NF-e) de entrega' : 'comprovantes de compra brasileiros (cupom fiscal, NFC-e ou comprovante de maquininha)'}.
+            const instrucoes = `Você lê fotos de comprovantes de compra brasileiros (cupom fiscal, NFC-e ou comprovante de maquininha).
 Responda SOMENTE um JSON com estas chaves (use null quando não conseguir ler):
 {
   "data": "AAAA-MM-DD",
   "valor": número com o valor total pago (ex: 1234.56),
-  "estabelecimento": nome ${isNF ? 'do cliente/destinatário' : 'da loja/emitente'},
-  "numero_nf": número da nota fiscal,
-  "forma_pagamento": "Crédito" ou "Débito",
+  "estabelecimento": nome da loja/emitente,
+  "forma_pagamento": "Crédito", "Débito" ou "Pix",
   "final_cartao": últimos 4 dígitos do cartão,
   "parcelas": número de parcelas (1 se à vista)
 }
-Se o ${isNF ? 'cliente' : 'estabelecimento'} for um destes, devolva exatamente o nome da lista: ${getOpcoes('establishmentSelect').join('; ')}.`;
+Se o estabelecimento for um destes, devolva exatamente o nome da lista: ${getOpcoes('establishmentSelect').join('; ')}.`;
 
             try {
                 const resp = await fetch('https://api.groq.com/openai/v1/chat/completions', {
@@ -963,8 +1021,7 @@ Se o ${isNF ? 'cliente' : 'estabelecimento'} for um destes, devolva exatamente o
                 });
 
                 if (resp.status === 401) {
-                    try { localStorage.removeItem(GROQ_KEY_STORAGE); } catch (e) {}
-                    setIaStatus('Chave da Groq inválida. Tire a foto de novo para digitar outra.', 'erro');
+                    setIaStatus('Chave da Groq inválida. Troque a chave na engrenagem ⚙️.', 'erro');
                     return;
                 }
                 if (!resp.ok) throw new Error(`Groq respondeu ${resp.status}: ${await resp.text()}`);
@@ -972,10 +1029,10 @@ Se o ${isNF ? 'cliente' : 'estabelecimento'} for um destes, devolva exatamente o
                 const json = await resp.json();
                 const dados = JSON.parse(json.choices[0].message.content);
 
-                // Usuário trocou de aba enquanto lia: não mistura os dados
-                if (currentMode !== modo) { setIaStatus(''); return; }
+                // Formulário foi limpo enquanto lia: não preenche
+                if (photos[0] !== imagemBase64) { setIaStatus(''); return; }
 
-                preencherComDadosIA(dados, isNF);
+                preencherComDadosIA(dados);
                 setIaStatus('✅ Dados preenchidos pela foto. Confira antes de enviar.', 'ok');
             } catch (err) {
                 console.error('Erro na leitura pela IA:', err);
@@ -984,7 +1041,7 @@ Se o ${isNF ? 'cliente' : 'estabelecimento'} for um destes, devolva exatamente o
         }
 
         // Preenche só o que está vazio (a data sempre vem da foto, pois o padrão é "hoje")
-        function preencherComDadosIA(d, isNF) {
+        function preencherComDadosIA(d) {
             const vazio = id => !document.getElementById(id).value;
 
             if (d.data && /^\d{4}-\d{2}-\d{2}$/.test(d.data)) {
@@ -999,32 +1056,27 @@ Se o ${isNF ? 'cliente' : 'estabelecimento'} for um destes, devolva exatamente o
                 handleEstablishmentChange();
             }
 
-            if (isNF) {
-                if (d.numero_nf && vazio('nfNumber')) document.getElementById('nfNumber').value = String(d.numero_nf);
-            } else {
-                const valor = parseFloat(String(d.valor ?? '').replace(',', '.'));
-                if (valor > 0 && vazio('purchaseAmount')) {
-                    const input = document.getElementById('purchaseAmount');
-                    input.value = String(Math.round(valor * 100));
-                    formatCurrency(input);
-                }
+            const valor = parseFloat(String(d.valor ?? '').replace(',', '.'));
+            if (valor > 0 && vazio('purchaseAmount')) {
+                const input = document.getElementById('purchaseAmount');
+                input.value = String(Math.round(valor * 100));
+                formatCurrency(input);
+            }
 
-                if ((d.forma_pagamento === 'Crédito' || d.forma_pagamento === 'Débito') && vazio('paymentType')) {
-                    document.getElementById('paymentType').value = d.forma_pagamento;
-                    handlePaymentChange();
-                    const parcelas = parseInt(d.parcelas, 10);
-                    if (d.forma_pagamento === 'Crédito' && parcelas >= 2 && parcelas <= 12) {
-                        document.getElementById('installments').value = `${parcelas}x`;
-                    }
+            if (['Crédito', 'Débito', 'Pix'].includes(d.forma_pagamento) && !getPaymentType()) {
+                setPaymentType(d.forma_pagamento);
+                const parcelas = parseInt(d.parcelas, 10);
+                if (d.forma_pagamento === 'Crédito' && parcelas >= 2 && parcelas <= 12) {
+                    document.getElementById('installments').value = `${parcelas}x`;
                 }
+            }
 
-                const final = String(d.final_cartao ?? '').replace(/\D/g, '').slice(-4);
-                if (final.length === 4 && vazio('cardLastDigits')) {
-                    const opcao = getOpcoes('cardLastDigits').find(o => o.startsWith(final));
-                    document.getElementById('cardLastDigits').value = opcao || 'Outro';
-                    if (!opcao) document.getElementById('customCardName').value = `Final ${final}`;
-                    handleCardChange();
-                }
+            const final = String(d.final_cartao ?? '').replace(/\D/g, '').slice(-4);
+            if (final.length === 4 && vazio('cardLastDigits') && !isPagamentoPix()) {
+                const opcao = getOpcoes('cardLastDigits').find(o => o.startsWith(final));
+                document.getElementById('cardLastDigits').value = opcao || 'Outro';
+                if (!opcao) document.getElementById('customCardName').value = `Final ${final}`;
+                handleCardChange();
             }
 
             updatePreview();
@@ -1065,45 +1117,40 @@ Se o ${isNF ? 'cliente' : 'estabelecimento'} for um destes, devolva exatamente o
             });
         }
 
+        // Miniaturas no formulário (com remover) e imagens na prévia
         function renderPhotoPreviews() {
-            const currentPhotos = photosData[currentMode];
-            document.getElementById('photoCounter').innerText = `${currentPhotos.length}/2`;
-            
+            document.getElementById('photoCounter').innerText = `${photos.length}/2`;
+            document.getElementById('photoButtons').classList.toggle('hidden', photos.length >= 2);
+
+            const thumbs = document.getElementById('photoThumbs');
             const imgContainer = document.getElementById('previewImageContainer');
             const grid = document.getElementById('previewImagesGrid');
-            const uploadBtn = document.getElementById('photoUpload');
-            
-            const validationField = document.getElementById('photoValidation');
 
-            if (currentPhotos.length === 0) {
-                imgContainer.classList.add('hidden');
-                imgContainer.classList.remove('flex');
-                grid.innerHTML = '';
-                if (validationField) { validationField.setAttribute('required', 'required'); validationField.value = ''; }
-                return;
-            }
+            thumbs.classList.toggle('hidden', photos.length === 0);
+            imgContainer.classList.toggle('hidden', photos.length === 0);
+            imgContainer.classList.toggle('flex', photos.length > 0);
 
-            if (validationField) { validationField.removeAttribute('required'); validationField.value = 'ok'; }
-            imgContainer.classList.remove('hidden');
-            imgContainer.classList.add('flex');
-            
-            grid.innerHTML = currentPhotos.map((photo, index) => `
-                <div class="relative w-full flex justify-center bg-white p-2 rounded-xl border border-slate-200 shadow-sm">
-                    <img src="${photo}" class="w-full h-auto object-contain rounded-lg" style="max-height: 250px;">
-                    <button type="button" onclick="removePhoto(${index})" class="absolute -top-2 -right-2 bg-white border border-slate-200 text-red-500 rounded-full p-1.5 shadow-md hover:bg-red-50 transition-colors">
+            thumbs.innerHTML = photos.map((photo, index) => `
+                <div class="relative aspect-[3/4] rounded-2xl overflow-hidden border border-slate-200 bg-slate-50 animate-fade-in-down">
+                    <img src="${photo}" class="w-full h-full object-cover">
+                    <button type="button" onclick="removePhoto(${index})" class="absolute top-2 right-2 bg-white/90 backdrop-blur text-red-500 rounded-full p-1.5 shadow-md hover:bg-white transition-colors" title="Remover foto">
                         <i data-lucide="x" class="w-4 h-4"></i>
                     </button>
                 </div>
             `).join('');
-            
+
+            grid.innerHTML = photos.map(photo => `
+                <img src="${photo}" class="w-full h-auto object-contain rounded-xl border border-slate-200" style="max-height: 250px;">
+            `).join('');
+
             lucide.createIcons();
         }
 
-        function removePhoto(index) { 
-            photosData[currentMode].splice(index, 1);
+        function removePhoto(index) {
+            photos.splice(index, 1);
+            if (photos.length === 0) setIaStatus('');
             renderPhotoPreviews();
-            updatePreview();
-            saveState(); // Salvar ao remover foto
+            saveState();
         }
 
         // Lógicas de Limpeza
@@ -1118,26 +1165,17 @@ Se o ${isNF ? 'cliente' : 'estabelecimento'} for um destes, devolva exatamente o
 
         function executeClear() {
             document.getElementById('receiptForm').reset();
-            
-            document.getElementById('customEstablishmentContainer').classList.add('hidden');
-            document.getElementById('customUserContainer').classList.add('hidden');
-            document.getElementById('customCardContainer').classList.add('hidden');
-            
-            // Limpa as fotos APENAS da aba atual
-            photosData[currentMode] = [];
+
+            photos = [];
             renderPhotoPreviews();
             setIaStatus('');
 
-            const dateInput = document.getElementById('purchaseDate');
-            const today = new Date();
-            const yyyy = today.getFullYear();
-            const mm = String(today.getMonth() + 1).padStart(2, '0');
-            const dd = String(today.getDate()).padStart(2, '0');
-            dateInput.value = `${yyyy}-${mm}-${dd}`;
-            
-            document.getElementById('installmentsContainer').classList.add('opacity-50', 'pointer-events-none');
-            
-            updatePreview();
+            setDataHoje();
+            handleEstablishmentChange();
+            handleUserChange();
+            handleCardChange();
+            handlePaymentChange();
+
             saveState(); // Grava o estado limpo
             hideClearConfirmModal();
         }
@@ -1155,16 +1193,16 @@ Se o ${isNF ? 'cliente' : 'estabelecimento'} for um destes, devolva exatamente o
                             // Calcula largura máxima e altura total
                             const maxWidth = Math.max(...imgObjects.map(img => img.width));
                             const totalHeight = imgObjects.reduce((sum, img) => sum + img.height, 0);
-                            
+
                             const canvas = document.createElement('canvas');
                             canvas.width = maxWidth;
                             canvas.height = totalHeight;
                             const ctx = canvas.getContext('2d');
-                            
+
                             // Fundo branco
                             ctx.fillStyle = '#ffffff';
                             ctx.fillRect(0, 0, canvas.width, canvas.height);
-                            
+
                             let currentY = 0;
                             imgObjects.forEach(img => {
                                 // Centraliza a imagem se ela for mais estreita que a largura máxima
@@ -1172,7 +1210,7 @@ Se o ${isNF ? 'cliente' : 'estabelecimento'} for um destes, devolva exatamente o
                                 ctx.drawImage(img, x, currentY);
                                 currentY += img.height;
                             });
-                            
+
                             resolve(canvas.toDataURL('image/jpeg', 1.0));
                         }
                     };
@@ -1184,30 +1222,26 @@ Se o ${isNF ? 'cliente' : 'estabelecimento'} for um destes, devolva exatamente o
 
         // Envio do Relatório
         function confirmBeforeSend() {
+            if (photos.length === 0) {
+                showMessageModal('Foto Ausente', 'Por favor, anexe a foto do comprovante antes de enviar.', 'error');
+                return;
+            }
+
             const form = document.getElementById('receiptForm');
-            
-            // Verifica primeiro se todos os campos obrigatórios estão preenchidos
             if (!form.checkValidity()) {
                 form.reportValidity();
                 return;
             }
-            
-            // Depois verifica se a foto foi anexada de acordo com o modo atual
-            if (photosData[currentMode].length === 0) {
-                showMessageModal('Foto Ausente', 'Por favor, anexe a foto do comprovante/NF antes de enviar.', 'error');
-                return;
-            }
 
-            document.getElementById('confirmModalText').innerText = 'Verifique se os dados e as fotos anexadas estão corretos.';
             document.getElementById('confirmModal').classList.remove('hidden');
             lucide.createIcons();
         }
 
         function hideConfirmModal() { document.getElementById('confirmModal').classList.add('hidden'); }
-        
-        function executeSend() { 
+
+        function executeSend() {
             hideConfirmModal();
-            downloadAndShare(); 
+            downloadAndShare();
         }
 
         let isProcessingShare = false;
@@ -1216,82 +1250,63 @@ Se o ${isNF ? 'cliente' : 'estabelecimento'} for um destes, devolva exatamente o
             if (isProcessingShare) return;
             isProcessingShare = true;
 
-            const btnSpan = document.querySelector('button[onclick="confirmBeforeSend()"] span.hidden.sm\\:inline') || document.querySelector('button[onclick="confirmBeforeSend()"] span');
-            const originalText = btnSpan.innerText; 
-            btnSpan.innerText = "Preparando Envio...";
+            const btnText = document.getElementById('sendBtnText');
+            const originalText = btnText.innerText;
+            btnText.innerText = "Preparando envio...";
 
             try {
-                const isNF = currentMode === 'nf';
-                
-                // Dados em comum
                 const dateVal = document.getElementById('purchaseDate').value;
                 const establishment = getEstablishmentName();
-                const purpose = isNF ? document.getElementById('nfPurpose').value : document.getElementById('purchasePurpose').value;
+                const purpose = document.getElementById('purchasePurpose').value;
                 const user = getUserName();
-                
-                const dateObj = new Date(dateVal + "T00:00:00");
-                const displayDate = dateObj.toLocaleDateString('pt-BR');
-                
-                let shareText = "";
-                const filenameBase = `${isNF ? 'Nota_Fiscal' : 'Comprovante'} - ${establishment} - ${displayDate.replace(/\//g, '-')}`;
 
-                // Dados específicos de Pagamento e Montagem do Texto WhatsApp
-                let amountStr = "0,00", amount = "0,00", cardDigits = "-", paymentType = "-", installments = "-", nfNum = "-";
+                const displayDate = new Date(dateVal + "T00:00:00").toLocaleDateString('pt-BR');
+                const filenameBase = `Comprovante - ${establishment} - ${displayDate.replace(/\//g, '-')}`;
 
-                if (isNF) {
-                    nfNum = document.getElementById('nfNumber').value || "Não informado";
-                    
-                    shareText += `📄 *ENTREGA DE PEDIDO SPG*\n\n`;
-                    shareText += `*Data da Entrega:* ${displayDate}\n`;
-                    shareText += `*Entregador:* ${user}\n`;
-                    shareText += `*Cliente/Local:* ${establishment}\n`;
-                    shareText += `*Número da NF:* ${nfNum}\n`;
-                    shareText += `*Observações:* ${purpose}\n`;
-                    
+                const amount = formatBRL(getAmount());
+                const isPix = isPagamentoPix();
+                const cardDigits = isPix ? 'Pix' : getCardName();
+                const paymentType = getPaymentType();
+                const installments = getInstallmentsText(getAmount());
+
+                // Texto do WhatsApp
+                const compraTitulo = isCompraParticular() ? 'COMPROVANTE DE COMPRA PARTICULAR' : 'COMPROVANTE DE COMPRA SPG';
+                let shareText = `🧾 *${compraTitulo}*\n\n`;
+                shareText += `*Data:* ${displayDate}\n`;
+                shareText += `*Responsável:* ${user}\n`;
+                shareText += `*Estabelecimento:* ${establishment}\n`;
+                shareText += `*Destino/Motivo:* ${purpose}\n\n`;
+                shareText += `${isPix ? '💠' : '💳'} *DADOS DO PAGAMENTO*\n`;
+                shareText += `*Valor:* ${amount}\n`;
+                if (isPix) {
+                    shareText += `*Tipo:* Pix\n`;
+                    shareText += `*Pago por:* ${user}\n`;
                 } else {
-                    amountStr = document.getElementById('purchaseAmount').value || "0,00";
-                    amount = parseFloat(amountStr.replace(/\./g, '').replace(',', '.')).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
-                    cardDigits = getCardName();
-                    paymentType = document.getElementById('paymentType').value;
-                    installments = document.getElementById('previewInstallments').innerText;
-                    
-                    const isPauloCard = cardDigits.startsWith('5013');
-                    const compraTitulo = isPauloCard ? 'COMPROVANTE DE COMPRA PARTICULAR' : 'COMPROVANTE DE COMPRA SPG';
-                    shareText += `🧾 *${compraTitulo}*\n\n`;
-                    shareText += `*Data:* ${displayDate}\n`;
-                    shareText += `*Responsável:* ${user}\n`;
-                    shareText += `*Estabelecimento:* ${establishment}\n`;
-                    shareText += `*Destino/Motivo:* ${purpose}\n\n`;
-                    shareText += `💳 *DADOS DO PAGAMENTO*\n`;
-                    shareText += `*Valor:* ${amount}\n`;
                     shareText += `*Cartão Final:* ${cardDigits}\n`;
                     shareText += `*Tipo:* ${paymentType}\n`;
                     shareText += `*Parcelas:* ${installments}\n`;
                 }
 
                 // --- ENVIO PARA O GOOGLE SHEETS ---
-                const now = new Date();
-                const payload = {
-                    tipoRegistro: isNF ? 'Entrega NF' : 'Compra',
+                sendDataToGoogleSheets({
+                    tipoRegistro: 'Compra',
                     date: displayDate,
-                    time: now.toLocaleTimeString('pt-BR'),
-                    amount: isNF ? '-' : amount,
-                    nfNumber: isNF ? nfNum : '-',
-                    establishment: establishment,
-                    purpose: purpose,
-                    user: user,
-                    cardDigits: isNF ? '-' : cardDigits,
-                    paymentType: isNF ? '-' : paymentType,
-                    installments: isNF ? '-' : installments
-                };
-                
-                sendDataToGoogleSheets(payload);
+                    time: new Date().toLocaleTimeString('pt-BR'),
+                    amount,
+                    nfNumber: '-',
+                    establishment,
+                    purpose,
+                    user,
+                    cardDigits,
+                    paymentType,
+                    installments
+                });
 
-                // Mescla as imagens da aba atual se houver mais de uma
-                let finalImageBase64 = photosData[currentMode][0];
-                if (photosData[currentMode].length > 1) {
-                    btnSpan.innerText = "Mesclando Imagens...";
-                    finalImageBase64 = await mergeImagesVertically(photosData[currentMode]);
+                // Mescla as imagens se houver mais de uma
+                let finalImageBase64 = photos[0];
+                if (photos.length > 1) {
+                    btnText.innerText = "Mesclando imagens...";
+                    finalImageBase64 = await mergeImagesVertically(photos);
                 }
 
                 // Cria o arquivo ÚNICO final
@@ -1300,21 +1315,21 @@ Se o ${isNF ? 'cliente' : 'estabelecimento'} for um destes, devolva exatamente o
                 const file = new File([blob], `${filenameBase}.jpg`, { type: 'image/jpeg' });
                 const filesArray = [file];
 
-                if (navigator.share && navigator.canShare && navigator.canShare({ files: filesArray })) { 
+                if (navigator.share && navigator.canShare && navigator.canShare({ files: filesArray })) {
                     try {
-                        await navigator.share({ files: filesArray, title: filenameBase, text: shareText }); 
+                        await navigator.share({ files: filesArray, title: filenameBase, text: shareText });
                     } catch (shareErr) {
                         console.log("Compartilhamento cancelado ou falhou:", shareErr);
                     }
-                } else { 
+                } else {
                     downloadFile(finalImageBase64, file.name);
-                    setTimeout(() => { window.open(`https://web.whatsapp.com/send?text=${encodeURIComponent(shareText)}`, '_blank'); }, 1500); 
+                    setTimeout(() => { window.open(`https://web.whatsapp.com/send?text=${encodeURIComponent(shareText)}`, '_blank'); }, 1500);
                 }
-            } catch (err) { 
+            } catch (err) {
                 console.error(err);
-                showMessageModal('Erro', 'Falha ao preparar o registro.', 'error'); 
-            } finally { 
-                if(btnSpan) btnSpan.innerText = originalText; 
+                showMessageModal('Erro', 'Falha ao preparar o registro.', 'error');
+            } finally {
+                btnText.innerText = originalText;
                 isProcessingShare = false;
             }
         }
@@ -1324,38 +1339,38 @@ Se o ${isNF ? 'cliente' : 'estabelecimento'} for um destes, devolva exatamente o
                 console.log("URL do Apps Script não configurada.");
                 return;
             }
-            
-            try { 
-                await fetch(SCRIPT_URL, { 
-                    method: 'POST', 
-                    mode: 'no-cors', 
-                    headers: { 'Content-Type': 'text/plain;charset=utf-8' }, 
-                    body: JSON.stringify(payload) 
-                }); 
+
+            try {
+                await fetch(SCRIPT_URL, {
+                    method: 'POST',
+                    mode: 'no-cors',
+                    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                    body: JSON.stringify(payload)
+                });
                 console.log("Dados enviados para a planilha com sucesso!");
             } catch (err) {
                 console.error("Erro ao enviar para a planilha:", err);
             }
         }
 
-        function downloadFile(uri, name) { 
-            const link = document.createElement('a'); 
-            link.href = uri; link.download = name; 
-            document.body.appendChild(link); link.click(); document.body.removeChild(link); 
+        function downloadFile(uri, name) {
+            const link = document.createElement('a');
+            link.href = uri; link.download = name;
+            document.body.appendChild(link); link.click(); document.body.removeChild(link);
         }
 
         function showMessageModal(title, message, type) {
-            const modal = document.getElementById('messageModal'); 
+            const modal = document.getElementById('messageModal');
             const iconContainer = document.getElementById('msgIconContainer');
-            const titleEl = document.getElementById('msgTitle'); 
+            const titleEl = document.getElementById('msgTitle');
             const textEl = document.getElementById('msgText');
             titleEl.innerText = title; textEl.innerText = message;
-            if (type === 'error') { iconContainer.className = "mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-red-100 mb-4"; iconContainer.innerHTML = '<i data-lucide="alert-circle" class="h-6 w-6 text-red-600"></i>'; } 
+            if (type === 'error') { iconContainer.className = "mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-red-100 mb-4"; iconContainer.innerHTML = '<i data-lucide="alert-circle" class="h-6 w-6 text-red-600"></i>'; }
             else if (type === 'success') { iconContainer.className = "mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-green-100 mb-4"; iconContainer.innerHTML = '<i data-lucide="check-circle" class="h-6 w-6 text-green-600"></i>'; }
             else { iconContainer.className = "mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-blue-100 mb-4"; iconContainer.innerHTML = '<i data-lucide="info" class="h-6 w-6 text-blue-600"></i>'; }
             modal.classList.remove('hidden'); lucide.createIcons();
         }
-        
+
         function hideMessageModal() { document.getElementById('messageModal').classList.add('hidden'); }
 
         // Campos de número não aceitam letras: inputmode="numeric" só dígitos; "decimal" dígitos, vírgula e ponto
